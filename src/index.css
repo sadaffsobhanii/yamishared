@@ -1483,3 +1483,48 @@ textarea.field {
 .toggle-row input[type="time"] { font: inherit; border: 2px solid var(--line); border-radius: 12px; padding: 4px 8px; background: var(--card); color: var(--ink); }
 .source-line { margin-top: 8px; }
 .source-line a, .profile .coming a { color: var(--purple); font-weight: 800; }
+
+/* "Customizing your Yami experience" — picks swirl around Yami like a stirred pot, then drop in */
+.customizing .hero { justify-content: center; gap: 6px; }
+.stir { position: relative; width: 300px; height: 300px; max-width: 86vw; max-height: 86vw; margin-bottom: 18px; }
+.stir-yami { position: absolute; left: 50%; top: 50%; width: 118px; transform: translate(-50%, -50%); animation: floaty 3.4s ease-in-out infinite, stir-pop 3.6s ease-in-out forwards; }
+.stir-yami .yami-ground { display: none; }
+.stir-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--purple);
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  animation: stir 3.4s cubic-bezier(0.45, 0.05, 0.4, 1) var(--d, 0ms) forwards;
+}
+.stir-step { animation: fade-in 0.4s ease; }
+
+@keyframes stir {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--a)) translateX(170px) rotate(calc(-1 * var(--a))) scale(0.6); }
+  15% { opacity: 1; }
+  70% { opacity: 1; transform: translate(-50%, -50%) rotate(calc(var(--a) + 360deg)) translateX(118px) rotate(calc(-1 * (var(--a) + 360deg))) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(calc(var(--a) + 540deg)) translateX(0) rotate(calc(-1 * (var(--a) + 540deg))) scale(0.2); }
+}
+
+@keyframes stir-pop {
+  0%, 80% { scale: 1; }
+  90% { scale: 1.15; }
+  100% { scale: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stir-card { animation: fade-in 0.6s ease forwards; transform: translate(-50%, -50%) rotate(var(--a)) translateX(118px) rotate(calc(-1 * var(--a))); }
+  .stir-yami { animation: none; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

@@ -5,6 +5,7 @@ import { readVariants, writeVariants } from './data/variants'
 import { AnalyzingScreen } from './screens/AnalyzingScreen'
 import { CheckInScreen } from './screens/CheckInScreen'
 import { ConfirmScreen } from './screens/ConfirmScreen'
+import { CustomizingScreen } from './screens/CustomizingScreen'
 import { GroceryScreen } from './screens/GroceryScreen'
 import { HomeScreen } from './screens/HomeScreen'
 import { InsightsScreen, seedInsightWidgets } from './screens/InsightsScreen'
@@ -16,7 +17,7 @@ import type { TabId } from './components/ui'
 import type { Draft, FavoriteMeal, GroceryItem, LoggedMeal, MealImage, MealResult, Profile, SampleId, Variants } from './types'
 import { emptyProfile } from './types'
 
-type Route = 'onboarding' | 'home' | 'snap' | 'analyzing' | 'confirm' | 'result' | 'grocery' | 'insights' | 'checkin' | 'profile'
+type Route = 'onboarding' | 'customizing' | 'home' | 'snap' | 'analyzing' | 'confirm' | 'result' | 'grocery' | 'insights' | 'checkin' | 'profile'
 
 export default function App() {
   const [route, setRoute] = useState<Route>('onboarding')
@@ -140,10 +141,11 @@ export default function App() {
             setProfile((current) => ({ ...current, insightWidgets: seedInsightWidgets(current), reminders: current.pace !== 'gentle' && current.pace !== '' }))
             setGrocery(seedGrocery(profile))
             setListMode(profile.shopMode === 'online' ? 'online' : 'in-store')
-            setRoute('home')
+            setRoute('customizing')
           }}
         />
       )}
+      {route === 'customizing' && <CustomizingScreen profile={profile} onDone={() => setRoute('home')} />}
       {route === 'home' && (
         <HomeScreen
           profile={profile}
