@@ -15,6 +15,7 @@ export function ResultScreen({
   variant,
   favorite,
   onFavorite,
+  onAsk,
   onBack,
   onAdd,
   onLog,
@@ -24,6 +25,7 @@ export function ResultScreen({
   variant: Variants['recommendation']
   favorite: boolean
   onFavorite: () => void
+  onAsk: () => void
   onBack: () => void
   onAdd: () => void
   onLog: () => void
@@ -104,6 +106,10 @@ export function ResultScreen({
           </button>
         </section>
       )}
+
+      <button type="button" className="text-button" onClick={onAsk}>
+        Ask Yami about this meal
+      </button>
 
       {!hideNumbers && (
         <button type="button" className="text-button" onClick={() => setShowScore((open) => !open)}>

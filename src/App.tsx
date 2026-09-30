@@ -3,6 +3,7 @@ import { seedGrocery } from './data/grocery'
 import { analysisFromItems, hasProtein, pickAnalysis, recommendFor } from './data/meals'
 import { readVariants, writeVariants } from './data/variants'
 import { AnalyzingScreen } from './screens/AnalyzingScreen'
+import { ChatScreen, type ChatBubble } from './screens/ChatScreen'
 import { CheckInScreen } from './screens/CheckInScreen'
 import { ConfirmScreen } from './screens/ConfirmScreen'
 import { CustomizingScreen } from './screens/CustomizingScreen'
@@ -17,7 +18,7 @@ import type { TabId } from './components/ui'
 import type { Draft, FavoriteMeal, GroceryItem, LoggedMeal, MealImage, MealResult, Profile, SampleId, Variants } from './types'
 import { emptyProfile } from './types'
 
-type Route = 'onboarding' | 'customizing' | 'home' | 'snap' | 'analyzing' | 'confirm' | 'result' | 'grocery' | 'insights' | 'checkin' | 'profile'
+type Route = 'onboarding' | 'customizing' | 'home' | 'chat' | 'snap' | 'analyzing' | 'confirm' | 'result' | 'grocery' | 'insights' | 'checkin' | 'profile'
 
 export default function App() {
   const [route, setRoute] = useState<Route>('onboarding')
@@ -33,6 +34,8 @@ export default function App() {
   const [checkInDone, setCheckInDone] = useState(false)
   const [checkInAnswers, setCheckInAnswers] = useState<string[]>([])
   const [favorites, setFavorites] = useState<FavoriteMeal[]>([])
+  const [chat, setChat] = useState<ChatBubble[]>([])
+  const [chatFocus, setChatFocus] = useState<MealResult | null>(null)
   const [variants, setVariants] = useState<Variants>(readVariants)
 
   useEffect(() => {
@@ -55,7 +58,19 @@ export default function App() {
   }
 
   function goTab(tab: TabId) {
+    if (tab === 'chat' && chatFocus) {
+      // Opening the tab directly starts a general chat rather than continuing a meal-specific one.
+      setChatFocus(null)
+      setChat([])
+    }
     setRoute(tab)
+  }
+
+  function askAboutMeal() {
+    if (!result) return
+    setChatFocus(result)
+    setChat([])
+    setRoute('chat')
   }
 
   function beginAnalysis(image: MealImage, hint: string, items?: string[]) {
@@ -173,6 +188,7 @@ export default function App() {
           onTab={goTab}
         />
       )}
+      {route === 'chat' && <ChatScreen profile={profile} meals={meals} focus={chatFocus} turns={chat} onTurns={setChat} onTab={goTab} />}
       {route === 'profile' && (
         <ProfileScreen profile={profile} variants={variants} onChange={patchProfile} onVariants={changeVariants} onTab={goTab} />
       )}
@@ -218,6 +234,7 @@ export default function App() {
           variant={variants.recommendation}
           favorite={isFavorite}
           onFavorite={toggleFavorite}
+          onAsk={askAboutMeal}
           onBack={() => setRoute(draft ? 'confirm' : 'snap')}
           onAdd={addSwap}
           onLog={logMeal}

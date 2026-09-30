@@ -939,8 +939,8 @@ textarea.field {
 
 .tabbar {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
 }
 
 .tab {
@@ -948,7 +948,7 @@ textarea.field {
   background: transparent;
   color: var(--muted);
   font-weight: 800;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   padding: 10px 0;
   border-radius: 999px;
 }
@@ -1528,3 +1528,10 @@ textarea.field {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* Ask Yami chat */
+.chat h1 { margin-bottom: 12px; }
+.chat-footer { display: flex; flex-direction: column; gap: 10px; }
+.chat-footer .chat-safety { margin: 0; text-align: center; }
+.chat-starters { gap: 8px; }
+.chat-starters .chip { font-size: 0.86rem; padding: 8px 12px; text-align: left; }

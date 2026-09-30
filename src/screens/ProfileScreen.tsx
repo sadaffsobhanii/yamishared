@@ -5,7 +5,6 @@ import { VARIANT_OPTIONS } from '../data/variants'
 import type { Profile, Variants } from '../types'
 
 const COMING = [
-  'An optional chat that explains a recommendation in plain language',
   'Apple Health, a fitness tracker, or a blood-glucose monitor — only if you connect one later',
   'Smarter reminders based on your calendar, routine, or location',
   'Specialized settings for prediabetes and GLP-1 users',

@@ -95,11 +95,12 @@ export function CartIcon() {
   )
 }
 
-export type TabId = 'home' | 'insights' | 'grocery' | 'profile'
+export type TabId = 'home' | 'chat' | 'insights' | 'grocery' | 'profile'
 
 export function TabBar({ current, onChange }: { current: TabId; onChange: (tab: TabId) => void }) {
   const tabs: { id: TabId; label: string }[] = [
     { id: 'home', label: 'Home' },
+    { id: 'chat', label: 'Ask Yami' },
     { id: 'insights', label: 'Insights' },
     { id: 'grocery', label: 'Groceries' },
     { id: 'profile', label: 'You' },
