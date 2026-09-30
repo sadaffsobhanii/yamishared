@@ -61,6 +61,35 @@ function uid() {
   return crypto.randomUUID()
 }
 
+type AiResult = { reply: string; done: boolean; updates: Record<string, unknown> }
+
+// Which onboarding topic each profile field answers, so progress and the scripted fallback know what's covered.
+const FIELD_TOPIC: Record<string, HearId> = {
+  name: 'name',
+  goals: 'goals',
+  goalCustom: 'goals',
+  diets: 'diet',
+  allergyNote: 'diet',
+  pastApps: 'past',
+  budget: 'budget',
+  studentBudget: 'budget',
+  shopMode: 'shop',
+  shopStore: 'shop',
+  widgets: 'track',
+  trackCalories: 'track',
+  trackWeight: 'track',
+}
+
+async function askYami(turns: Bubble[], profile: Partial<Profile>): Promise<AiResult> {
+  const response = await fetch('/api/onboard', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ turns: turns.map(({ from, text }) => ({ from, text })), profile }),
+  })
+  if (!response.ok) throw new Error(`onboard ${response.status}`)
+  return response.json()
+}
+
 export function OnboardingScreen({
   profile,
   onChange,
@@ -82,6 +111,10 @@ export function OnboardingScreen({
   const [draft, setDraft] = useState('')
   const [micNote, setMicNote] = useState('')
   const indexRef = useRef(0)
+  const aiRef = useRef(true)
+  const bubblesRef = useRef<Bubble[]>([])
+  const knownRef = useRef<Partial<Profile>>({})
+  const answeredRef = useRef(new Set<HearId>())
   const probedRef = useRef(false)
   const heardRef = useRef('')
   const recRef = useRef<SpeechRec | null>(null)
@@ -106,8 +139,42 @@ export function OnboardingScreen({
   }, [])
 
   useEffect(() => {
+    bubblesRef.current = bubbles
     endRef.current?.scrollIntoView({ block: 'end' })
   }, [bubbles, live, thinking, listening])
+
+  function remember(patch: Partial<Profile>) {
+    onChange(patch)
+    knownRef.current = { ...knownRef.current, ...patch }
+    Object.keys(patch).forEach((field) => {
+      const topic = FIELD_TOPIC[field]
+      if (topic) answeredRef.current.add(topic)
+    })
+  }
+
+  function nextOpen(from: number) {
+    let next = from
+    while (next < QUESTIONS.length && answeredRef.current.has(QUESTIONS[next].id)) next += 1
+    return next
+  }
+
+  function say(text: string) {
+    setBubbles((current) => [...current, { id: uid(), from: 'yami', text }])
+  }
+
+  function applyAi(result: AiResult) {
+    const patch = Object.fromEntries(Object.entries(result.updates ?? {}).filter(([, value]) => value != null)) as Partial<Profile>
+    if (Object.keys(patch).length) remember(patch)
+    setThinking(false)
+    say(result.reply)
+    if (result.done) {
+      setProgress(1)
+      setDone(true)
+    } else {
+      setProgress(answeredRef.current.size / QUESTIONS.length)
+    }
+    setBusy(false)
+  }
 
   function speak(text: string, voice: boolean) {
     if (busy || done) return
@@ -116,9 +183,33 @@ export function OnboardingScreen({
     setDraft('')
     setMicNote('')
     setBusy(true)
-    setBubbles((current) => [...current, { id: uid(), from: 'you', text, voice }])
+    const turn: Bubble = { id: uid(), from: 'you', text, voice }
+    setBubbles((current) => [...current, turn])
     setThinking(true)
 
+    if (aiRef.current) {
+      askYami([...bubblesRef.current, turn], knownRef.current)
+        .then(applyAi)
+        .catch(() => {
+          // No key or the API is unreachable: carry on with the scripted questions from the first open topic.
+          aiRef.current = false
+          indexRef.current = nextOpen(0)
+          scripted(text)
+        })
+      return
+    }
+    scripted(text)
+  }
+
+  function scripted(text: string) {
+    if (indexRef.current >= QUESTIONS.length) {
+      setThinking(false)
+      say("That's everything I need. Thank you for sharing all that! Here's what I heard.")
+      setProgress(1)
+      setDone(true)
+      setBusy(false)
+      return
+    }
     const question = QUESTIONS[indexRef.current]
     const heard = hear(question.id, text, probedRef.current)
     later(() => {
@@ -129,9 +220,10 @@ export function OnboardingScreen({
         setBusy(false)
         return
       }
-      onChange(heard.patch)
+      remember(heard.patch)
+      answeredRef.current.add(question.id)
       probedRef.current = false
-      const next = indexRef.current + 1
+      const next = nextOpen(indexRef.current + 1)
       indexRef.current = next
       setProgress(next / QUESTIONS.length)
       setBubbles((current) => [...current, { id: uid(), from: 'yami', text: heard.reflection }])
@@ -156,11 +248,15 @@ export function OnboardingScreen({
 
   function skip() {
     if (busy || done) return
+    if (aiRef.current) {
+      speak('Skip for now', false)
+      return
+    }
     stopMic()
     probedRef.current = false
     setBusy(true)
     setBubbles((current) => [...current, { id: uid(), from: 'you', text: 'Skip for now' }])
-    const next = indexRef.current + 1
+    const next = nextOpen(indexRef.current + 1)
     indexRef.current = next
     setProgress(next / QUESTIONS.length)
     later(() => {
