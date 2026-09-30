@@ -26,11 +26,6 @@ const QUESTIONS: { id: HearId; ask: string; probe: string }[] = [
     probe: 'Just a name is enough — whatever you go by.',
   },
   {
-    id: 'language',
-    ask: 'Is there another language you speak at home? Even a little is welcome.',
-    probe: 'English is fine. Or name the language, however you say it.',
-  },
-  {
     id: 'goals',
     ask: 'What would you like this to help with?',
     probe: 'Energy, building muscle, blood sugar, feeling better around food, being more aware — or say it your own way.',
