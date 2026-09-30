@@ -28,6 +28,7 @@ const FROM_HOME: Partial<Record<WidgetId, InsightWidgetId>> = {
 }
 
 const GOAL_LABEL: Record<string, string> = {
+  weight: 'Weight',
   energy: 'Energy',
   muscle: 'Muscle',
   'blood-sugar': 'Blood sugar',

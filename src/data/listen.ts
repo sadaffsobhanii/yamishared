@@ -10,6 +10,7 @@ export type Heard = {
 }
 
 export const GOAL_WORDS: { id: string; label: string; words: string[] }[] = [
+  { id: 'weight', label: 'losing weight', words: ['lose weight', 'losing weight', 'weight loss', 'lose some weight', 'lbs', 'pounds', 'kilos', 'kg', 'slim down', 'drop weight', 'get lean'] },
   { id: 'energy', label: 'more energy', words: ['energy', 'energized', 'tired', 'fatigue'] },
   { id: 'muscle', label: 'building muscle', words: ['muscle', 'muscles', 'strength', 'stronger', 'lifting'] },
   { id: 'blood-sugar', label: 'steadier blood sugar', words: ['blood sugar', 'glucose', 'prediabetes'] },
@@ -145,9 +146,11 @@ function hearLanguage(text: string, acceptAnyway: boolean): Heard {
 
 function hearGoals(raw: string, text: string, acceptAnyway: boolean): Heard {
   const goals = GOAL_WORDS.filter((goal) => has(text, goal.words)).map((goal) => goal.id)
-  if (goals.length === 0 && !acceptAnyway) return { patch: {}, reflection: '', understood: false }
+  if (goals.length === 0 && !acceptAnyway && raw.trim().length < 3) return { patch: {}, reflection: '', understood: false }
   const labels = GOAL_WORDS.filter((goal) => goals.includes(goal.id)).map((goal) => goal.label)
-  const reflection = labels.length
+  const reflection = goals.includes('weight')
+    ? "Got it. We'll go gently — small changes, one meal at a time, no strict plan."
+    : labels.length
     ? `${cap(join(labels))} — I love that. We'll get there one meal at a time, no strict plan.`
     : "Thank you for putting it in your own words. I'll keep that close."
   return {

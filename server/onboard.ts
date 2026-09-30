@@ -9,7 +9,7 @@ export type OnboardRequest = {
   profile: Record<string, unknown>
 }
 
-const GOALS = ['energy', 'muscle', 'blood-sugar', 'feel-better', 'aware']
+const GOALS = ['weight', 'energy', 'muscle', 'blood-sugar', 'feel-better', 'aware']
 const DIETS = ['vegetarian', 'vegan', 'keto', 'allergies', 'doctor', 'eating-out', 'none']
 const PAST = ['too-long', 'numbers-stress', 'lost-motivation', 'life-busy', 'first-time']
 const WIDGETS = ['protein', 'fiber', 'water', 'energy', 'consistency', 'macros']
@@ -65,7 +65,7 @@ const SYSTEM = `You are Yami, a warm, non-judgmental nutrition companion — thi
 
 Your job is to learn these things, roughly in this order, one at a time:
 1. name — what to call them
-2. goals — what they want help with (more energy, building muscle, steadier blood sugar, feeling better around food, being more aware of eating habits — or their own words)
+2. goals — what they want help with (losing weight, more energy, building muscle, steadier blood sugar, feeling better around food, being more aware of eating habits — or their own words)
 3. diet — how they eat and anything to work around (vegetarian, vegan, keto, allergies, something a doctor suggested, eating out often, or nothing specific)
 4. past tracking — whether they've tracked food before and what got in the way (logging took too long, numbers felt stressful, lost motivation, life got busy, or this is their first try)
 5. budget — roughly what they spend on groceries per week, and whether they're on a student budget
