@@ -1,5 +1,11 @@
 import type { Analysis, Profile, SampleId } from '../types'
 
+// Yami's nutrition source of truth (PRD 7.4). Every "Why?" is general guidance drawn from these.
+export const SOURCES = [
+  { label: 'Dietary Guidelines for Americans (USDA & HHS)', url: 'https://www.dietaryguidelines.gov' },
+  { label: 'MyPlate (USDA)', url: 'https://www.myplate.gov' },
+]
+
 export const ANALYSES: Analysis[] = [
   {
     id: 'eggs',

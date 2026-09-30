@@ -1,5 +1,6 @@
 import { SafetyNote, Screen, TabBar, type TabId } from '../components/ui'
 import { PACES } from '../data/listen'
+import { SOURCES } from '../data/meals'
 import { VARIANT_OPTIONS } from '../data/variants'
 import type { Profile, Variants } from '../types'
 
@@ -84,6 +85,23 @@ export function ProfileScreen({
           )}
         </div>
         <p className="for-line">At most one a day, never during quiet hours. Skipping one is always fine. (Preview only — nothing is sent.)</p>
+      </section>
+
+      <section>
+        <h2>Where Yami's ideas come from</h2>
+        <p className="sub">
+          Meal ideas and every “Why?” follow public, evidence-based guidance — not diet trends. Yami never overrides your diet choices or a
+          clinician's advice.
+        </p>
+        <ul className="coming">
+          {SOURCES.map((source) => (
+            <li key={source.url}>
+              <a href={source.url} target="_blank" rel="noopener noreferrer">
+                {source.label}
+              </a>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section>

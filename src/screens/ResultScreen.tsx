@@ -4,7 +4,7 @@ import { Phrase } from '../components/Phrase'
 import { Yami } from '../components/Yami'
 import { PrimaryButton, SafetyNote, Screen } from '../components/ui'
 import { getLanguage } from '../data/languages'
-import { hasProtein } from '../data/meals'
+import { SOURCES, hasProtein } from '../data/meals'
 import type { MealResult, Profile, Variants } from '../types'
 
 const FIBER = /spinach|salad|green|berry|berries|apple|banana|oat|bean|lentil|chickpea|edamame|toast|bread/i
@@ -82,7 +82,23 @@ export function ResultScreen({
           <button type="button" className="text-button why-toggle" onClick={() => setWhyOpen((open) => !open)} aria-expanded={whyOpen}>
             {whyOpen ? 'Hide why' : 'Why?'}
           </button>
-          {whyOpen ? <p className="why">{result.why}</p> : null}
+          {whyOpen ? (
+            <>
+              <p className="why">{result.why}</p>
+              <p className="for-line source-line">
+                Based on{' '}
+                {SOURCES.map((source, index) => (
+                  <span key={source.url}>
+                    {index > 0 ? ' and ' : ''}
+                    <a href={source.url} target="_blank" rel="noopener noreferrer">
+                      {source.label}
+                    </a>
+                  </span>
+                ))}
+                .
+              </p>
+            </>
+          ) : null}
           <button type="button" className="btn-secondary" onClick={onAdd} disabled={result.added}>
             {result.added ? 'Added to your list ✓' : 'Add to grocery list'}
           </button>

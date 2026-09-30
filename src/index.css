@@ -12,11 +12,11 @@
   --line: #e0d5ee;
   --track: #e4dcef;
   --high: #6fa92b;
-  --mid: #f5c242;
+  --mid: #d9c6f0;
   --onboard: #b48ee0;
   --onboard-soft: #ede0f7;
   --low: #e9a27c;
-  --serif: "Fraunces", "Noto Sans Arabic", "Noto Sans Devanagari", "Noto Sans Hebrew", "Noto Sans SC", "Noto Sans JP", "Noto Sans KR", "Iowan Old Style", Georgia, serif;
+  --serif: "Nunito", "Noto Sans Arabic", "Noto Sans Devanagari", "Noto Sans Hebrew", "Noto Sans SC", "Noto Sans JP", "Noto Sans KR", "Iowan Old Style", Georgia, serif;
   --sans: "Nunito", "Noto Sans Arabic", "Noto Sans Devanagari", "Noto Sans Hebrew", "Noto Sans SC", "Noto Sans JP", "Noto Sans KR", "Avenir Next", sans-serif;
   --shadow: 0 10px 28px rgba(42, 33, 64, 0.08);
   color: var(--ink);
@@ -47,8 +47,8 @@ button { cursor: pointer; }
 
 h1, h2, .kicker, .bubble, .phrase, .verdict {
   font-family: var(--serif);
-  font-weight: 560;
-  letter-spacing: -0.02em;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
 h1 {
@@ -421,7 +421,7 @@ textarea.field {
   height: 190px;
   border-radius: 50%;
   border: 7px solid transparent;
-  border-top-color: var(--yellow);
+  border-top-color: var(--purple);
   border-right-color: #e6d6f7;
   animation: swirl 0.8s linear forwards;
 }
@@ -463,8 +463,8 @@ textarea.field {
   height: 18px;
   padding: 0 4px;
   border-radius: 99px;
-  background: var(--yellow);
-  color: var(--ink);
+  background: var(--purple);
+  color: white;
   font-size: 0.72rem;
   font-weight: 800;
   display: grid;
@@ -473,14 +473,14 @@ textarea.field {
 
 .snap-button {
   margin: 36px 0 28px;
-  background: var(--yellow);
-  color: var(--ink);
+  background: var(--purple);
+  color: white;
   padding: 22px 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  box-shadow: 0 14px 30px rgba(196, 146, 32, 0.28);
+  box-shadow: 0 14px 30px rgba(108, 74, 160, 0.28);
 }
 
 .snap-icon {
@@ -488,7 +488,7 @@ textarea.field {
   height: 36px;
   border-radius: 50%;
   background: transparent;
-  color: var(--ink);
+  color: white;
   display: grid;
   place-items: center;
 }
@@ -591,7 +591,7 @@ textarea.field {
   position: absolute;
   width: 26px;
   height: 26px;
-  border: 3px solid var(--yellow);
+  border: 3px solid var(--onboard);
   z-index: 1;
   pointer-events: none;
 }
@@ -622,8 +622,8 @@ textarea.field {
   height: 74px;
   border-radius: 50%;
   border: 6px solid white;
-  background: var(--yellow);
-  color: var(--ink);
+  background: var(--purple);
+  color: white;
   display: grid;
   place-items: center;
   margin: 0 auto 8px;
@@ -690,7 +690,7 @@ textarea.field {
   display: block;
   height: 100%;
   width: 0;
-  background: var(--yellow);
+  background: var(--onboard);
   animation: fill-bar 2s linear forwards;
 }
 
@@ -731,8 +731,8 @@ textarea.field {
 }
 
 .chip-input {
-  border: 2px solid var(--yellow);
-  background: var(--yellow-soft);
+  border: 2px solid var(--onboard);
+  background: var(--onboard-soft);
   min-width: 140px;
   font-size: 1rem;
 }
@@ -982,7 +982,7 @@ textarea.field {
 .widget-label {
   font-family: var(--serif);
   font-size: 1.05rem;
-  font-weight: 560;
+  font-weight: 800;
 }
 
 .preview-card,
@@ -1267,7 +1267,7 @@ textarea.field {
   font-family: var(--serif);
   font-size: 2rem;
   line-height: 1;
-  font-weight: 560;
+  font-weight: 800;
 }
 .caption { color: var(--muted); font-size: 0.82rem; font-weight: 750; }
 .card-x {
@@ -1481,3 +1481,5 @@ textarea.field {
 .study-group { margin-top: 14px; }
 .study-group .swap-kicker { margin-bottom: 8px; }
 .toggle-row input[type="time"] { font: inherit; border: 2px solid var(--line); border-radius: 12px; padding: 4px 8px; background: var(--card); color: var(--ink); }
+.source-line { margin-top: 8px; }
+.source-line a, .profile .coming a { color: var(--purple); font-weight: 800; }
