@@ -29,7 +29,7 @@ export const DIET_WORDS: { id: string; label: string; words: string[] }[] = [
 
 const PAST_WORDS: { id: string; label: string; words: string[] }[] = [
   { id: 'too-long', label: 'logging took too long', words: ['too long', 'took forever', 'slow to log', 'logging'] },
-  { id: 'numbers-stress', label: 'numbers felt stressful', words: ['number', 'calorie counting', 'stressful', 'stressed'] },
+  { id: 'numbers-stress', label: 'numbers felt stressful', words: ['number', 'calorie', 'counting', 'stressful', 'stressed', 'trigger', 'anxious', 'anxiety', 'obsess', 'guilt'] },
   { id: 'lost-motivation', label: 'motivation faded', words: ['motivation', 'gave up', 'quit'] },
   { id: 'life-busy', label: 'life got busy', words: ['busy', 'no time', 'hectic'] },
   { id: 'first-time', label: 'this is a first try', words: ['first try', 'first time', 'never used', 'new to this', "haven't tried", 'have not tried'] },
@@ -197,7 +197,7 @@ function hearPast(text: string, acceptAnyway: boolean): Heard {
   return {
     patch: { pastApps },
     reflection: quiet
-      ? "That's so common. I'll keep the numbers out of sight unless you want them."
+      ? "Thank you for telling me. Calories stay completely out of sight here — you'll never have to count anything."
       : pastApps.length === 1 && pastApps[0] === 'first-time'
         ? "Then we'll start fresh together. No pressure."
         : labels.length

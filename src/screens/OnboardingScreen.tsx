@@ -211,7 +211,7 @@ export function OnboardingScreen({
       return
     }
     const question = QUESTIONS[indexRef.current]
-    const heard = hear(question.id, text, probedRef.current)
+    const heard = hear(question.id, text, question.id !== 'name' || probedRef.current)
     later(() => {
       setThinking(false)
       if (!heard.understood) {
