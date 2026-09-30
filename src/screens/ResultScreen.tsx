@@ -29,7 +29,7 @@ export function ResultScreen({
   onLog: () => void
 }) {
   const language = getLanguage(profile.languageId)
-  const [whyOpen, setWhyOpen] = useState(false)
+  const [whyOpen, setWhyOpen] = useState(profile.pace === 'detailed')
   const [showScore, setShowScore] = useState(false)
   const hideNumbers = profile.pastApps.includes('numbers-stress') && !profile.trackCalories
 

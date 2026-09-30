@@ -209,21 +209,21 @@ function hearPast(text: string, acceptAnyway: boolean): Heard {
 }
 
 export const PACES: { id: Exclude<Pace, ''>; label: string; blurb: string }[] = [
-  { id: 'gentle', label: 'A light touch', blurb: 'Log when you feel like it. Fewer nudges.' },
-  { id: 'steady', label: 'A steady rhythm', blurb: 'A simple routine, most days.' },
-  { id: 'detailed', label: 'More detail', blurb: 'More to notice, still no pressure.' },
+  { id: 'gentle', label: 'Stay quiet', blurb: 'Yami only speaks up when you log a meal. No reminders.' },
+  { id: 'steady', label: 'Once a day', blurb: 'One gentle check-in a day.' },
+  { id: 'detailed', label: 'More tips', blurb: 'A daily check-in plus a little more explanation with each meal.' },
 ]
 
 function hearPace(text: string): Heard {
-  const gentle = /\b(light|gentle|easy|little|slow|chill|low[- ]key|not much|minimal|relaxed)\b/.test(text)
-  const detailed = /\b(detail|detailed|more|lots|closely|everything|all in|serious|a lot)\b/.test(text)
+  const gentle = /\b(quiet|light|gentle|easy|little|slow|chill|low[- ]key|not much|minimal|relaxed|leave me|only when|no reminders?)\b/.test(text)
+  const detailed = /\b(tips|detail|detailed|more|lots|closely|everything|all in|serious|a lot)\b/.test(text)
   const pace: Pace = gentle ? 'gentle' : detailed ? 'detailed' : 'steady'
   const reflection =
     pace === 'gentle'
-      ? "A light touch it is. I'll stay quiet unless you come to me."
+      ? "Got it — I'll stay quiet until you log a meal. No reminders."
       : pace === 'detailed'
-        ? "Love it. I'll share a bit more each time — still no pressure."
-        : "A steady rhythm — simple, most days. We'll build from there."
+        ? "Love it. I'll check in once a day and share a few more tips with each meal."
+        : "Once a day it is — one gentle check-in, nothing more."
   return { patch: { pace }, reflection, understood: true }
 }
 

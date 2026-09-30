@@ -42,8 +42,8 @@ const QUESTIONS: { id: HearId; ask: string; probe: string }[] = [
   },
   {
     id: 'pace',
-    ask: 'How much would you like me around — a light touch, a steady rhythm, or more detail?',
-    probe: 'A light touch, a steady rhythm, or more detail — whatever feels right.',
+    ask: 'How involved should I be? I can stay quiet until you log a meal, check in with you once a day, or share more tips each time.',
+    probe: 'Quiet until you log, once a day, or more tips — whatever feels right.',
   },
   {
     id: 'budget',
@@ -530,7 +530,7 @@ function RecapScreen({
       </section>
 
       <section className="recap-block">
-        <h2>How much you'd like me around</h2>
+        <h2>How involved Yami should be</h2>
         <div className="chips">
           {PACES.map((pace) => (
             <button
