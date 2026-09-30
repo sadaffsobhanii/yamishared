@@ -22,37 +22,37 @@ type Bubble = { id: string; from: 'yami' | 'you'; text: string; voice?: boolean 
 const QUESTIONS: { id: HearId; ask: string; probe: string }[] = [
   {
     id: 'name',
-    ask: 'What should I call you?',
+    ask: 'First things first — what should I call you?',
     probe: 'Just a name is enough — whatever you go by.',
   },
   {
     id: 'goals',
-    ask: 'What would you like this to help with?',
+    ask: "What's bringing you to Yami? What would feel like a win a few months from now?",
     probe: 'Energy, building muscle, blood sugar, feeling better around food, being more aware — or say it your own way.',
   },
   {
     id: 'diet',
-    ask: 'How do you like to eat? Any foods you leave out, or a way of eating that matters to you?',
+    ask: 'How do you like to eat? Anything I should work around?',
     probe: 'Vegetarian, vegan, keto, an allergy, something a doctor already suggested, eating out a lot — or nothing specific.',
   },
   {
     id: 'past',
-    ask: 'Have nutrition apps gotten in the way before?',
+    ask: 'Have you tried tracking your food before? What got in the way?',
     probe: 'Too slow to log, numbers that felt stressful, losing motivation, life getting busy — or this might be your first try.',
   },
   {
     id: 'budget',
-    ask: 'What feels comfortable to spend on groceries in a week?',
+    ask: "Let's talk groceries. About how much do you like to spend in a week?",
     probe: 'A rough number is enough. If you are a student, you can say that too.',
   },
   {
     id: 'shop',
-    ask: 'Do you usually shop in the store, order online, or both?',
+    ask: 'And do you usually shop in the store, order online, or a bit of both?',
     probe: 'In the store, online, or both — and a store name, if one comes to mind.',
   },
   {
     id: 'track',
-    ask: 'What would you like to notice? Not everything — just what would feel good on your home screen.',
+    ask: 'Last one! What would you like to keep an eye on? Only what feels good — nothing more.',
     probe: 'Protein, fiber, water, energy, meal consistency, macros. Calories and weight only if you want them.',
   },
 ]
@@ -142,7 +142,7 @@ export function OnboardingScreen({
             {
               id: uid(),
               from: 'yami',
-              text: "That's plenty for now. Your home screen, the ideas I offer, your grocery list, and the pace of tracking will follow this conversation.",
+              text: "That's everything I need. Thank you for sharing all that! Here's what I heard.",
             },
           ])
           setDone(true)
@@ -164,7 +164,7 @@ export function OnboardingScreen({
     indexRef.current = next
     setProgress(next / QUESTIONS.length)
     later(() => {
-      setBubbles((current) => [...current, { id: uid(), from: 'yami', text: 'We can leave that for later.' }])
+      setBubbles((current) => [...current, { id: uid(), from: 'yami', text: 'No problem — we can come back to that.' }])
       later(() => {
         if (next >= QUESTIONS.length) {
           setBubbles((current) => [
@@ -172,7 +172,7 @@ export function OnboardingScreen({
             {
               id: uid(),
               from: 'yami',
-              text: "That's plenty for now. Your home screen, the ideas I offer, your grocery list, and the pace of tracking will follow what you did share.",
+              text: "That's plenty to get started. Here's what I heard so far.",
             },
           ])
           setDone(true)
