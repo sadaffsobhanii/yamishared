@@ -13,7 +13,7 @@ const FALLBACK: Record<string, string> = {
 export function MealVisual({ image, alt }: { image: MealImage; alt: string }) {
   const [failed, setFailed] = useState(false)
   const src = image.kind === 'photo' ? image.src : SAMPLES.find((sample) => sample.id === image.id)?.src
-  const tint = image.kind === 'sample' ? FALLBACK[image.id] : '#F3EDE0'
+  const tint = image.kind === 'sample' ? FALLBACK[image.id] : '#EEE6F7'
 
   if (!src || failed) {
     return <div className="meal-fallback" style={{ background: tint }} aria-label={alt} />

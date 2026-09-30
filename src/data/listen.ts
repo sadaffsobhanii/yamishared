@@ -9,7 +9,7 @@ export type Heard = {
   understood: boolean
 }
 
-const GOAL_WORDS: { id: string; label: string; words: string[] }[] = [
+export const GOAL_WORDS: { id: string; label: string; words: string[] }[] = [
   { id: 'energy', label: 'more energy', words: ['energy', 'energized', 'tired', 'fatigue'] },
   { id: 'muscle', label: 'building muscle', words: ['muscle', 'muscles', 'strength', 'stronger', 'lifting'] },
   { id: 'blood-sugar', label: 'steadier blood sugar', words: ['blood sugar', 'glucose', 'prediabetes'] },
@@ -17,7 +17,7 @@ const GOAL_WORDS: { id: string; label: string; words: string[] }[] = [
   { id: 'aware', label: 'being more aware', words: ['aware', 'awareness', 'mindful', 'noticing'] },
 ]
 
-const DIET_WORDS: { id: string; label: string; words: string[] }[] = [
+export const DIET_WORDS: { id: string; label: string; words: string[] }[] = [
   { id: 'vegetarian', label: 'vegetarian', words: ['vegetarian', 'no meat'] },
   { id: 'vegan', label: 'vegan', words: ['vegan'] },
   { id: 'keto', label: 'keto', words: ['keto', 'low carb', 'low-carb'] },
@@ -34,7 +34,7 @@ const PAST_WORDS: { id: string; label: string; words: string[] }[] = [
   { id: 'first-time', label: 'this is a first try', words: ['first try', 'first time', 'never used', 'new to this', "haven't tried", 'have not tried'] },
 ]
 
-const WIDGET_WORDS: { id: WidgetId; label: string; words: string[] }[] = [
+export const WIDGET_WORDS: { id: WidgetId; label: string; words: string[] }[] = [
   { id: 'protein', label: 'protein', words: ['protein'] },
   { id: 'fiber', label: 'fiber', words: ['fiber', 'fibre'] },
   { id: 'water', label: 'water', words: ['water', 'hydration'] },
@@ -43,7 +43,7 @@ const WIDGET_WORDS: { id: WidgetId; label: string; words: string[] }[] = [
   { id: 'macros', label: 'macros', words: ['macro'] },
 ]
 
-const STORES: { label: string; words: string[] }[] = [
+export const STORES: { label: string; words: string[] }[] = [
   { label: 'Target', words: ['target'] },
   { label: 'Walmart', words: ['walmart'] },
   { label: 'Whole Foods', words: ['whole foods', 'wholefoods'] },

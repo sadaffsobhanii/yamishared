@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Yami } from '../components/Yami'
 import { Screen } from '../components/ui'
-import { hear, type HearId } from '../data/listen'
+import { DIET_WORDS, GOAL_WORDS, WIDGET_WORDS, hear, type HearId } from '../data/listen'
 import type { Profile } from '../types'
 
 type SpeechResult = { isFinal: boolean; 0: { transcript: string } }
@@ -67,9 +67,11 @@ function uid() {
 }
 
 export function OnboardingScreen({
+  profile,
   onChange,
   onEnter,
 }: {
+  profile: Profile
   onChange: (patch: Partial<Profile>) => void
   onEnter: () => void
 }) {
@@ -80,6 +82,7 @@ export function OnboardingScreen({
   const [thinking, setThinking] = useState(false)
   const [busy, setBusy] = useState(true)
   const [done, setDone] = useState(false)
+  const [recap, setRecap] = useState(false)
   const [typing, setTyping] = useState(false)
   const [draft, setDraft] = useState('')
   const [micNote, setMicNote] = useState('')
@@ -114,7 +117,7 @@ export function OnboardingScreen({
   function speak(text: string, voice: boolean) {
     if (busy || done) return
     stopMic()
-    setTyping(false)
+    if (voice) setTyping(false)
     setDraft('')
     setMicNote('')
     setBusy(true)
@@ -243,9 +246,11 @@ export function OnboardingScreen({
     }
   }
 
+  if (recap) return <RecapScreen profile={profile} onChange={onChange} onEnter={onEnter} />
+
   const footer = done ? (
-    <button type="button" className="btn-primary" onClick={onEnter}>
-      Enter Yami
+    <button type="button" className="btn-primary" onClick={() => setRecap(true)}>
+      See what I heard
     </button>
   ) : (
     <div className="chat-compose">
@@ -259,6 +264,7 @@ export function OnboardingScreen({
         >
           <input
             className="field"
+            autoFocus
             value={draft}
             placeholder="Say it in words"
             maxLength={240}
@@ -322,6 +328,152 @@ export function OnboardingScreen({
         ) : null}
         <div ref={endRef} />
       </div>
+    </Screen>
+  )
+}
+
+const SHOP_MODES: { id: Profile['shopMode']; label: string }[] = [
+  { id: 'in-store', label: 'In the store' },
+  { id: 'online', label: 'Online' },
+  { id: 'both', label: 'Both' },
+]
+
+function toggle<T>(list: T[], item: T) {
+  return list.includes(item) ? list.filter((value) => value !== item) : [...list, item]
+}
+
+function RecapScreen({
+  profile,
+  onChange,
+  onEnter,
+}: {
+  profile: Profile
+  onChange: (patch: Partial<Profile>) => void
+  onEnter: () => void
+}) {
+  const diets = profile.diets.filter((id) => id !== 'none')
+  return (
+    <Screen
+      className="intake recap"
+      progress={1}
+      corner={<Yami pose="rest" className="yami-corner yami-float" />}
+      footer={
+        <button type="button" className="btn-primary" onClick={onEnter}>
+          Looks right — enter Yami
+        </button>
+      }
+    >
+      <h1>Here's what I heard</h1>
+      <p className="sub">Tap anything to change it. You can always update this later.</p>
+
+      <section className="recap-block">
+        <h2>Name</h2>
+        <input
+          className="field"
+          value={profile.name}
+          placeholder="What should I call you?"
+          maxLength={40}
+          onChange={(event) => onChange({ name: event.target.value })}
+        />
+      </section>
+
+      <section className="recap-block">
+        <h2>What you'd like help with</h2>
+        <div className="chips">
+          {GOAL_WORDS.map((goal) => (
+            <button
+              key={goal.id}
+              type="button"
+              className={profile.goals.includes(goal.id) ? 'chip selected' : 'chip'}
+              aria-pressed={profile.goals.includes(goal.id)}
+              onClick={() => onChange({ goals: toggle(profile.goals, goal.id) })}
+            >
+              {goal.label}
+            </button>
+          ))}
+        </div>
+        {profile.goalCustom ? <p className="note">In your words: “{profile.goalCustom}”</p> : null}
+      </section>
+
+      <section className="recap-block">
+        <h2>How you eat</h2>
+        <div className="chips">
+          {DIET_WORDS.map((diet) => (
+            <button
+              key={diet.id}
+              type="button"
+              className={diets.includes(diet.id) ? 'chip selected' : 'chip'}
+              aria-pressed={diets.includes(diet.id)}
+              onClick={() => onChange({ diets: toggle(diets, diet.id) })}
+            >
+              {diet.label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="recap-block">
+        <h2>Weekly grocery budget</h2>
+        <label className="money">
+          <span>$</span>
+          <input
+            inputMode="numeric"
+            value={profile.budget}
+            placeholder="Optional"
+            maxLength={4}
+            onChange={(event) => onChange({ budget: event.target.value.replace(/\D/g, '') })}
+          />
+        </label>
+        <label className="toggle-row">
+          <span>Keep ideas student-budget friendly</span>
+          <input type="checkbox" checked={profile.studentBudget} onChange={(event) => onChange({ studentBudget: event.target.checked })} />
+        </label>
+      </section>
+
+      <section className="recap-block">
+        <h2>Where you shop</h2>
+        <div className="chips">
+          {SHOP_MODES.map((mode) => (
+            <button
+              key={mode.id}
+              type="button"
+              className={profile.shopMode === mode.id ? 'chip selected' : 'chip'}
+              aria-pressed={profile.shopMode === mode.id}
+              onClick={() => onChange({ shopMode: mode.id })}
+            >
+              {mode.label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="recap-block">
+        <h2>On your home screen</h2>
+        <div className="chips">
+          {WIDGET_WORDS.map((widget) => (
+            <button
+              key={widget.id}
+              type="button"
+              className={profile.widgets.includes(widget.id) ? 'chip selected' : 'chip'}
+              aria-pressed={profile.widgets.includes(widget.id)}
+              onClick={() => onChange({ widgets: toggle(profile.widgets, widget.id) })}
+            >
+              {widget.label}
+            </button>
+          ))}
+        </div>
+        <div className="toggles">
+          <label className="toggle-row">
+            <span>Show calories</span>
+            <input type="checkbox" checked={profile.trackCalories} onChange={(event) => onChange({ trackCalories: event.target.checked })} />
+          </label>
+          <label className="toggle-row">
+            <span>Show weight</span>
+            <input type="checkbox" checked={profile.trackWeight} onChange={(event) => onChange({ trackWeight: event.target.checked })} />
+          </label>
+        </div>
+        <p className="note">Calories and weight stay off unless you want them.</p>
+      </section>
     </Screen>
   )
 }

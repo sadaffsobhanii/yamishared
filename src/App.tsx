@@ -99,6 +99,7 @@ export default function App() {
     <div className="app-root">
       {route === 'onboarding' && (
         <OnboardingScreen
+          profile={profile}
           onChange={patchProfile}
           onEnter={() => {
             setProfile((current) => ({ ...current, insightWidgets: seedInsightWidgets(current) }))
