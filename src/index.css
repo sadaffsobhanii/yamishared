@@ -1415,3 +1415,69 @@ textarea.field {
 .recap-block { margin-top: 22px; }
 .recap-block h2 { margin: 0 0 10px; }
 .recap-block .toggle-row { margin-top: 10px; }
+
+/* Logging alternatives and favorites (PRD 6.3) */
+.log-alts { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 18px; }
+.log-alts .text-button { margin: 8px 0 0; }
+.alt-panel { margin-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+.favorites { margin-bottom: 14px; }
+.favorites .sample-label { margin-top: 4px; }
+.favorite-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+.favorite {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  max-width: 220px;
+  padding: 8px 14px 8px 8px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  font-weight: 800;
+  text-align: left;
+  box-shadow: var(--shadow);
+}
+.favorite-thumb { width: 40px; height: 40px; flex: none; border-radius: 50%; overflow: hidden; }
+.favorite-thumb .meal-img, .favorite-thumb .meal-fallback { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.fav-toggle { display: block; margin: 10px auto 0; }
+.data-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.data-list li { display: flex; justify-content: space-between; font-weight: 800; }
+
+/* Gentle gamification (PRD 6.7) */
+.week-card {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 22px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+.week-card h2 { margin: 0 0 8px; }
+.week-card .sub { margin: 8px 0 0; font-size: 0.92rem; }
+.week-yami { flex: none; width: 72px; display: flex; justify-content: center; }
+.week-yami .yami { transform: scale(var(--grow, 1)); transform-origin: bottom center; transition: transform 0.4s ease; }
+.week-copy { min-width: 0; }
+.milestone { display: flex; gap: 6px; }
+.dot { width: 14px; height: 14px; border-radius: 50%; background: var(--track); }
+.dot.filled { background: var(--onboard); }
+.badge-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.badge {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--onboard-soft);
+  color: var(--purple);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+.recap-week .swap-card { margin-top: 16px; }
+.wins { margin: 8px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-weight: 700; line-height: 1.4; }
+
+/* Study settings for the PRD section 8 tests */
+.study { margin-top: 22px; padding: 14px 16px; border-radius: 18px; background: var(--beige); }
+.study summary { font-weight: 800; cursor: pointer; }
+.study-group { margin-top: 14px; }
+.study-group .swap-kicker { margin-bottom: 8px; }
+.toggle-row input[type="time"] { font: inherit; border: 2px solid var(--line); border-radius: 12px; padding: 4px 8px; background: var(--card); color: var(--ink); }

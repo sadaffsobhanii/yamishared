@@ -8,11 +8,12 @@ const FALLBACK: Record<string, string> = {
   pasta: '#F8E6C8',
   salad: '#E3F2D8',
   soup: '#F8E0D2',
+  other: '#EEE6F7',
 }
 
 export function MealVisual({ image, alt }: { image: MealImage; alt: string }) {
   const [failed, setFailed] = useState(false)
-  const src = image.kind === 'photo' ? image.src : SAMPLES.find((sample) => sample.id === image.id)?.src
+  const src = image.kind === 'photo' ? image.src : image.kind === 'sample' ? SAMPLES.find((sample) => sample.id === image.id)?.src : undefined
   const tint = image.kind === 'sample' ? FALLBACK[image.id] : '#EEE6F7'
 
   if (!src || failed) {

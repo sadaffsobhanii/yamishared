@@ -1,8 +1,10 @@
 import { MealVisual } from '../components/MealVisual'
+import { Yami } from '../components/Yami'
 import { Phrase } from '../components/Phrase'
 import { CameraIcon, CartIcon, SafetyNote, Screen, TabBar, type TabId } from '../components/ui'
 import { budgetHint } from '../data/grocery'
 import { getLanguage } from '../data/languages'
+import { WEEK_GOAL, badges, growth } from '../data/progress'
 import type { GroceryItem, LoggedMeal, Profile, WidgetId } from '../types'
 
 const WIDGET_LABEL: Record<WidgetId, string> = {
@@ -34,6 +36,7 @@ export function HomeScreen({
   grocery,
   water,
   checkInDone,
+  showCheckIn,
   onSnap,
   onWater,
   onCheckIn,
@@ -44,6 +47,7 @@ export function HomeScreen({
   grocery: GroceryItem[]
   water: number
   checkInDone: boolean
+  showCheckIn: boolean
   onSnap: () => void
   onWater: () => void
   onCheckIn: () => void
@@ -56,6 +60,9 @@ export function HomeScreen({
     ...(profile.trackWeight ? (['weight'] as WidgetId[]) : []),
   ]
   const openItems = grocery.filter((item) => !item.done)
+  const week = { meals, grocery, water, checkInDone }
+  const earned = badges(week).filter((badge) => badge.earned)
+  const level = growth(week)
   const preview = [...openItems.filter((item) => item.fromMeal), ...openItems.filter((item) => !item.fromMeal)].slice(0, 2)
 
   return (
@@ -109,6 +116,35 @@ export function HomeScreen({
         </section>
       )}
 
+      <section className="week-card">
+        <div className="week-yami" style={{ ['--grow' as string]: String(1 + level * 0.12) }}>
+          <Yami pose="rest" className="yami-sm yami-float" />
+        </div>
+        <div className="week-copy">
+          <h2>Your week</h2>
+          <div className="milestone" aria-label={`${Math.min(meals.length, WEEK_GOAL)} of ${WEEK_GOAL} meals toward a 5-Meal Week`}>
+            {Array.from({ length: WEEK_GOAL }, (_, index) => (
+              <span key={index} className={index < meals.length ? 'dot filled' : 'dot'} />
+            ))}
+          </div>
+          <p className="sub">
+            {meals.length >= WEEK_GOAL
+              ? '5-Meal Week reached. Anything more is a bonus.'
+              : `${meals.length} of ${WEEK_GOAL} meals toward a 5-Meal Week. Missed days never reset anything.`}
+          </p>
+          <p className="for-line">Yami grows a little every time you log.</p>
+          {earned.length > 0 && (
+            <div className="badge-row">
+              {earned.map((badge) => (
+                <span key={badge.id} className="badge">
+                  {badge.label}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
       <section className="preview-card">
         <div className="preview-head">
           <h2>Grocery list</h2>
@@ -131,10 +167,12 @@ export function HomeScreen({
         )}
       </section>
 
-      <button type="button" className="checkin-card" onClick={onCheckIn}>
-        <span className="widget-label">Weekly voice check-in</span>
-        <span>{checkInDone ? 'Thanks for checking in. Next week, we’ll keep things simple.' : 'Time for your Yami check-in'}</span>
-      </button>
+      {showCheckIn && (
+        <button type="button" className="checkin-card" onClick={onCheckIn}>
+          <span className="widget-label">Weekly voice check-in</span>
+          <span>{checkInDone ? 'See your Sunday recap' : 'Time for your Yami check-in'}</span>
+        </button>
+      )}
 
       <section className="today">
         <h2>Recent meals</h2>

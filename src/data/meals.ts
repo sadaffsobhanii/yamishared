@@ -46,7 +46,33 @@ export const ANALYSES: Analysis[] = [
     why: 'Soup is a simple way to eat. Fruit, beans, or yogurt later can add fiber or protein if that matches what you asked to notice.',
     swapItem: 'Apples',
   },
+  {
+    id: 'other',
+    keywords: [],
+    items: [],
+    score: 70,
+    summary: 'Nice work logging this.',
+    why: 'Every meal you log helps me learn how you like to eat. This is a general read, not a measurement.',
+    swapItem: 'Apples',
+  },
 ]
+
+// Stand-ins for a barcode scan in the prototype: tapping one acts like a successful scan.
+export const PRODUCTS: { id: string; label: string; items: string[] }[] = [
+  { id: 'yogurt', label: 'Greek yogurt cup', items: ['Greek yogurt'] },
+  { id: 'edamame', label: 'Frozen edamame', items: ['Edamame'] },
+  { id: 'lentil-soup', label: 'Canned lentil soup', items: ['Lentil soup'] },
+  { id: 'granola', label: 'Granola bar', items: ['Granola bar'] },
+]
+
+export function searchMeals(query: string) {
+  const q = query.trim().toLowerCase()
+  if (!q) return []
+  return SAMPLES.filter((sample) => {
+    const analysis = byId[sample.id]
+    return sample.label.toLowerCase().includes(q) || [...analysis.keywords, ...analysis.items].some((word) => word.toLowerCase().includes(q))
+  })
+}
 
 export const SAMPLES: { id: SampleId; label: string; src: string }[] = [
   { id: 'eggs', label: 'Eggs & toast', src: '/samples/eggs.jpg' },
@@ -78,7 +104,8 @@ export function matchAnalysis(hints: string[]): Analysis | null {
 }
 
 export function pickAnalysis(hint: string): Analysis {
-  return matchAnalysis([hint]) ?? ANALYSES[Math.floor(Math.random() * ANALYSES.length)]
+  const pool = ANALYSES.filter((analysis) => analysis.id !== 'other')
+  return matchAnalysis([hint]) ?? pool[Math.floor(Math.random() * pool.length)]
 }
 
 export function analysisFromItems(items: string[], currentId: SampleId): Analysis {

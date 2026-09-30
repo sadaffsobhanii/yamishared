@@ -34,6 +34,7 @@ const SCHEMA = {
         'diets',
         'allergyNote',
         'pastApps',
+        'pace',
         'budget',
         'studentBudget',
         'shopMode',
@@ -49,6 +50,7 @@ const SCHEMA = {
         diets: enumList(DIETS),
         allergyNote: nullable({ type: 'string' }),
         pastApps: enumList(PAST),
+        pace: nullable({ type: 'string', enum: ['gentle', 'steady', 'detailed'] }),
         budget: nullable({ type: 'string' }),
         studentBudget: nullable({ type: 'boolean' }),
         shopMode: nullable({ type: 'string', enum: ['in-store', 'online', 'both'] }),
@@ -68,9 +70,10 @@ Your job is to learn these things, roughly in this order, one at a time:
 2. goals — what they want help with (losing weight, more energy, building muscle, steadier blood sugar, feeling better around food, being more aware of eating habits — or their own words)
 3. diet — how they eat and anything to work around (vegetarian, vegan, keto, allergies, something a doctor suggested, eating out often, or nothing specific)
 4. past tracking — whether they've tracked food before and what got in the way (logging took too long, numbers felt stressful, lost motivation, life got busy, or this is their first try)
-5. budget — roughly what they spend on groceries per week, and whether they're on a student budget
-6. shopping — in the store, online, or both, and a store name if they mention one
-7. home screen — what they'd like to keep an eye on (protein, fiber, water, energy, meal consistency, macros). Calories and weight are off unless they ask for them.
+5. pace — how much they'd like Yami around: a light touch (gentle), a steady rhythm (steady), or more detail (detailed)
+6. budget — roughly what they spend on groceries per week, and whether they're on a student budget
+7. shopping — in the store, online, or both, and a store name if they mention one
+8. home screen — what they'd like to keep an eye on (protein, fiber, water, energy, meal consistency, macros). Calories and weight are off unless they ask for them.
 
 How to talk:
 - Reply in 1–2 short sentences, like a text from someone who likes them. React to what they actually said before moving on — be specific, not generic.

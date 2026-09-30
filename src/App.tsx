@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { seedGrocery } from './data/grocery'
 import { analysisFromItems, hasProtein, pickAnalysis, recommendFor } from './data/meals'
+import { readVariants, writeVariants } from './data/variants'
 import { AnalyzingScreen } from './screens/AnalyzingScreen'
 import { CheckInScreen } from './screens/CheckInScreen'
 import { ConfirmScreen } from './screens/ConfirmScreen'
@@ -12,7 +13,7 @@ import { ProfileScreen } from './screens/ProfileScreen'
 import { ResultScreen } from './screens/ResultScreen'
 import { SnapScreen } from './screens/SnapScreen'
 import type { TabId } from './components/ui'
-import type { Draft, GroceryItem, LoggedMeal, MealImage, MealResult, Profile } from './types'
+import type { Draft, FavoriteMeal, GroceryItem, LoggedMeal, MealImage, MealResult, Profile, SampleId, Variants } from './types'
 import { emptyProfile } from './types'
 
 type Route = 'onboarding' | 'home' | 'snap' | 'analyzing' | 'confirm' | 'result' | 'grocery' | 'insights' | 'checkin' | 'profile'
@@ -29,12 +30,24 @@ export default function App() {
   const [water, setWater] = useState(0)
   const [energy, setEnergy] = useState<number | null>(null)
   const [checkInDone, setCheckInDone] = useState(false)
+  const [checkInAnswers, setCheckInAnswers] = useState<string[]>([])
+  const [favorites, setFavorites] = useState<FavoriteMeal[]>([])
+  const [variants, setVariants] = useState<Variants>(readVariants)
 
   useEffect(() => {
     if (route !== 'analyzing') return
-    const timeout = window.setTimeout(() => setRoute('confirm'), 2000)
+    const timeout = window.setTimeout(() => {
+      // Study arm B for 8.4 skips the confirm step and trusts the photo read.
+      if (variants.logging === 'photo-only' && draft && draft.items.length > 0) showResult(draft.image, draft.items, draft.analysisId)
+      else setRoute('confirm')
+    }, 2000)
     return () => window.clearTimeout(timeout)
   }, [route])
+
+  function changeVariants(next: Variants) {
+    setVariants(next)
+    writeVariants(next)
+  }
 
   function patchProfile(patch: Partial<Profile>) {
     setProfile((current) => ({ ...current, ...patch }))
@@ -44,19 +57,23 @@ export default function App() {
     setRoute(tab)
   }
 
-  function beginAnalysis(image: MealImage, hint: string) {
-    const analysis = pickAnalysis(hint)
-    setDraft({ image, items: [...analysis.items], analysisId: analysis.id })
+  function beginAnalysis(image: MealImage, hint: string, items?: string[]) {
+    const analysis = items ? analysisFromItems(items, 'other') : pickAnalysis(hint)
+    setDraft({ image, items: items ? [...items] : [...analysis.items], analysisId: analysis.id })
     setRoute('analyzing')
   }
 
   function looksRight() {
     if (!draft || draft.items.length === 0) return
-    const analysis = analysisFromItems(draft.items, draft.analysisId)
+    showResult(draft.image, draft.items, draft.analysisId)
+  }
+
+  function showResult(image: MealImage, items: string[], analysisId: SampleId) {
+    const analysis = analysisFromItems(items, analysisId)
     const idea = recommendFor(analysis, profile)
     setResult({
-      image: draft.image,
-      items: [...draft.items],
+      image,
+      items: [...items],
       analysis,
       summary: idea.summary,
       recommendation: idea.recommendation,
@@ -66,6 +83,22 @@ export default function App() {
       added: false,
     })
     setRoute('result')
+  }
+
+  function favoriteKey(items: string[]) {
+    return items.map((item) => item.toLowerCase()).join('|')
+  }
+
+  const isFavorite = result ? favorites.some((favorite) => favoriteKey(favorite.items) === favoriteKey(result.items)) : false
+
+  function toggleFavorite() {
+    if (!result) return
+    const key = favoriteKey(result.items)
+    setFavorites((current) =>
+      current.some((favorite) => favoriteKey(favorite.items) === key)
+        ? current.filter((favorite) => favoriteKey(favorite.items) !== key)
+        : [...current, { id: crypto.randomUUID(), image: result.image, items: [...result.items], analysisId: result.analysis.id }],
+    )
   }
 
   function addSwap() {
@@ -101,8 +134,10 @@ export default function App() {
         <OnboardingScreen
           profile={profile}
           onChange={patchProfile}
+          variant={variants.onboarding}
           onEnter={() => {
-            setProfile((current) => ({ ...current, insightWidgets: seedInsightWidgets(current) }))
+            // A light-touch pace starts with reminders off; the other paces start with one gentle nudge a day.
+            setProfile((current) => ({ ...current, insightWidgets: seedInsightWidgets(current), reminders: current.pace !== 'gentle' && current.pace !== '' }))
             setGrocery(seedGrocery(profile))
             setListMode(profile.shopMode === 'online' ? 'online' : 'in-store')
             setRoute('home')
@@ -116,6 +151,7 @@ export default function App() {
           grocery={grocery}
           water={water}
           checkInDone={checkInDone}
+          showCheckIn={variants.checkin === 'on'}
           onSnap={() => setRoute('snap')}
           onWater={() => setWater((count) => count + 1)}
           onCheckIn={() => setRoute('checkin')}
@@ -135,11 +171,35 @@ export default function App() {
           onTab={goTab}
         />
       )}
-      {route === 'profile' && <ProfileScreen profile={profile} onChange={patchProfile} onTab={goTab} />}
-      {route === 'checkin' && (
-        <CheckInScreen done={checkInDone} onDone={() => setCheckInDone(true)} onBack={() => setRoute('home')} />
+      {route === 'profile' && (
+        <ProfileScreen profile={profile} variants={variants} onChange={patchProfile} onVariants={changeVariants} onTab={goTab} />
       )}
-      {route === 'snap' && <SnapScreen onBack={() => setRoute('home')} onCapture={beginAnalysis} />}
+      {route === 'checkin' && (
+        <CheckInScreen
+          done={checkInDone}
+          profile={profile}
+          meals={meals}
+          grocery={grocery}
+          water={water}
+          answers={checkInAnswers}
+          onDone={(answers) => {
+            setCheckInAnswers(answers)
+            setCheckInDone(true)
+          }}
+          onBack={() => setRoute('home')}
+        />
+      )}
+      {route === 'snap' && (
+        <SnapScreen
+          favorites={favorites}
+          onBack={() => setRoute('home')}
+          onCapture={beginAnalysis}
+          onFavorite={(favorite) => {
+            setDraft(null)
+            showResult(favorite.image, favorite.items, favorite.analysisId)
+          }}
+        />
+      )}
       {route === 'analyzing' && <AnalyzingScreen profile={profile} />}
       {route === 'confirm' && draft && (
         <ConfirmScreen
@@ -150,14 +210,24 @@ export default function App() {
         />
       )}
       {route === 'result' && result && (
-        <ResultScreen profile={profile} result={result} onBack={() => setRoute('confirm')} onAdd={addSwap} onLog={logMeal} />
+        <ResultScreen
+          profile={profile}
+          result={result}
+          variant={variants.recommendation}
+          favorite={isFavorite}
+          onFavorite={toggleFavorite}
+          onBack={() => setRoute(draft ? 'confirm' : 'snap')}
+          onAdd={addSwap}
+          onLog={logMeal}
+        />
       )}
       {route === 'grocery' && (
         <GroceryScreen
           profile={profile}
           items={grocery}
           instacartConnected={instacartConnected}
-          listMode={listMode}
+          listMode={variants.grocery === 'list-only' ? 'in-store' : listMode}
+          listOnly={variants.grocery === 'list-only'}
           onListMode={setListMode}
           onChange={setGrocery}
           onToggleInstacart={() => setInstacartConnected((connected) => !connected)}

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { SAMPLES } from '../data/meals'
+import { MealVisual } from '../components/MealVisual'
+import { PRODUCTS, SAMPLES, searchMeals } from '../data/meals'
 import { CameraIcon, Screen } from '../components/ui'
-import type { MealImage, SampleId } from '../types'
+import type { FavoriteMeal, MealImage, SampleId } from '../types'
 
 async function fileToPhoto(file: File): Promise<string> {
   const dataUrl = await new Promise<string>((resolve, reject) => {
@@ -30,12 +31,19 @@ async function fileToPhoto(file: File): Promise<string> {
 }
 
 export function SnapScreen({
+  favorites,
   onBack,
   onCapture,
+  onFavorite,
 }: {
+  favorites: FavoriteMeal[]
   onBack: () => void
-  onCapture: (image: MealImage, hint: string) => void
+  onCapture: (image: MealImage, hint: string, items?: string[]) => void
+  onFavorite: (favorite: FavoriteMeal) => void
 }) {
+  const [panel, setPanel] = useState<'none' | 'search' | 'barcode'>('none')
+  const [query, setQuery] = useState('')
+  const matches = searchMeals(query)
   const videoRef = useRef<HTMLVideoElement>(null)
   const uploadRef = useRef<HTMLInputElement>(null)
   const cameraFileRef = useRef<HTMLInputElement>(null)
@@ -108,6 +116,22 @@ export function SnapScreen({
       <h1>Show me your meal</h1>
       <p className="sub">A photo is plenty. I'll take a look with you.</p>
 
+      {favorites.length > 0 && (
+        <section className="favorites">
+          <p className="sample-label">Your favorites — one tap to log</p>
+          <div className="favorite-row">
+            {favorites.map((favorite) => (
+              <button key={favorite.id} type="button" className="favorite" onClick={() => onFavorite(favorite)}>
+                <span className="favorite-thumb">
+                  <MealVisual image={favorite.image} alt="" />
+                </span>
+                <span>{favorite.items.join(', ')}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       <div className="viewfinder">
         <span className="bracket tl" />
         <span className="bracket tr" />
@@ -132,9 +156,62 @@ export function SnapScreen({
         </button>
       )}
 
-      <button type="button" className="text-button" onClick={() => uploadRef.current?.click()}>
-        Upload a photo instead
-      </button>
+      <div className="log-alts">
+        <button type="button" className="text-button" onClick={() => uploadRef.current?.click()}>
+          Upload a photo
+        </button>
+        <button type="button" className="text-button" aria-expanded={panel === 'barcode'} onClick={() => setPanel(panel === 'barcode' ? 'none' : 'barcode')}>
+          Scan a barcode
+        </button>
+        <button type="button" className="text-button" aria-expanded={panel === 'search'} onClick={() => setPanel(panel === 'search' ? 'none' : 'search')}>
+          Search
+        </button>
+      </div>
+
+      {panel === 'barcode' && (
+        <section className="alt-panel">
+          <p className="note">In this prototype, tap a product to act like you scanned it.</p>
+          <div className="chips">
+            {PRODUCTS.map((product) => (
+              <button
+                key={product.id}
+                type="button"
+                className="chip"
+                onClick={() => onCapture({ kind: 'none' }, product.label, product.items)}
+              >
+                {product.label}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {panel === 'search' && (
+        <section className="alt-panel">
+          <form
+            className="chat-type"
+            onSubmit={(event) => {
+              event.preventDefault()
+              const words = query.trim()
+              if (words) onCapture({ kind: 'none' }, words, words.split(/,| and /).map((word) => word.trim()).filter(Boolean))
+            }}
+          >
+            <input className="field" autoFocus value={query} placeholder="What did you eat?" maxLength={80} onChange={(event) => setQuery(event.target.value)} />
+            <button type="submit" className="chip selected" disabled={!query.trim()}>
+              Log it
+            </button>
+          </form>
+          {matches.length > 0 && (
+            <div className="chips">
+              {matches.map((sample) => (
+                <button key={sample.id} type="button" className="chip" onClick={() => onCapture({ kind: 'sample', id: sample.id }, sample.id)}>
+                  {sample.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       <input
         ref={uploadRef}

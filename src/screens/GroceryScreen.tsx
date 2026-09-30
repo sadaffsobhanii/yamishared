@@ -9,6 +9,7 @@ export function GroceryScreen({
   items,
   instacartConnected,
   listMode,
+  listOnly,
   onListMode,
   onChange,
   onToggleInstacart,
@@ -19,6 +20,7 @@ export function GroceryScreen({
   items: GroceryItem[]
   instacartConnected: boolean
   listMode: 'in-store' | 'online'
+  listOnly: boolean
   onListMode: (mode: 'in-store' | 'online') => void
   onChange: (items: GroceryItem[]) => void
   onToggleInstacart: () => void
@@ -56,31 +58,35 @@ export function GroceryScreen({
       className="grocery"
       onBack={onBack}
       footer={
-        <div className="order-footer">
-          <button
-            type="button"
-            className={instacartConnected ? 'instacart connected' : 'instacart'}
-            onClick={onToggleInstacart}
-          >
-            {instacartConnected ? '✓ Connected to Instacart' : 'Connect to Instacart'}
-          </button>
-          <p className="estimate-note">
-            This Instacart button is a preview on this device. Nothing is connected to a real account.
-            {listMode === 'online' ? ' Order online opens that preview, or your store if you have not connected it.' : ' In-store keeps this as a shopping list.'}
-          </p>
-          <div className="estimate">
-            <span>Estimated total</span>
-            <strong>{formatPrice(total)}</strong>
-          </div>
-          <p className="estimate-note">My prices, not the register — they wander a little.</p>
-          <PrimaryButton onClick={orderNow} disabled={!destination || items.length === 0}>
-            Order Now
-          </PrimaryButton>
-          {!destination ? (
-            <p className="estimate-note">Tell me a store I know, or connect Instacart, and I can take you there.</p>
-          ) : null}
+        listOnly ? (
           <TabBar current="grocery" onChange={onTab} />
-        </div>
+        ) : (
+          <div className="order-footer">
+            <button
+              type="button"
+              className={instacartConnected ? 'instacart connected' : 'instacart'}
+              onClick={onToggleInstacart}
+            >
+              {instacartConnected ? '✓ Connected to Instacart' : 'Connect to Instacart'}
+            </button>
+            <p className="estimate-note">
+              This Instacart button is a preview on this device. Nothing is connected to a real account.
+              {listMode === 'online' ? ' Order online opens that preview, or your store if you have not connected it.' : ' In-store keeps this as a shopping list.'}
+            </p>
+            <div className="estimate">
+              <span>Estimated total</span>
+              <strong>{formatPrice(total)}</strong>
+            </div>
+            <p className="estimate-note">My prices, not the register — they wander a little.</p>
+            <PrimaryButton onClick={orderNow} disabled={!destination || items.length === 0}>
+              Order Now
+            </PrimaryButton>
+            {!destination ? (
+              <p className="estimate-note">Tell me a store I know, or connect Instacart, and I can take you there.</p>
+            ) : null}
+            <TabBar current="grocery" onChange={onTab} />
+          </div>
+        )
       }
     >
       <h1>Your grocery list</h1>
@@ -89,14 +95,16 @@ export function GroceryScreen({
       ) : (
         <p className="sub">Your list is empty — swaps you add from a result will land here.</p>
       )}
-      <div className="mode-toggle" role="group" aria-label="List type">
-        <button type="button" className={listMode === 'in-store' ? 'chip selected' : 'chip'} onClick={() => onListMode('in-store')}>
-          In-store list
-        </button>
-        <button type="button" className={listMode === 'online' ? 'chip selected' : 'chip'} onClick={() => onListMode('online')}>
-          Order online
-        </button>
-      </div>
+      {!listOnly && (
+        <div className="mode-toggle" role="group" aria-label="List type">
+          <button type="button" className={listMode === 'in-store' ? 'chip selected' : 'chip'} onClick={() => onListMode('in-store')}>
+            In-store list
+          </button>
+          <button type="button" className={listMode === 'online' ? 'chip selected' : 'chip'} onClick={() => onListMode('online')}>
+            Order online
+          </button>
+        </div>
+      )}
 
       {items.length > 0 && (
         <ul className="grocery-list">

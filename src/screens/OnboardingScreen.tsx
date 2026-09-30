@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Yami } from '../components/Yami'
 import { Screen } from '../components/ui'
-import { DIET_WORDS, GOAL_WORDS, WIDGET_WORDS, hear, type HearId } from '../data/listen'
-import type { Profile } from '../types'
+import { DIET_WORDS, GOAL_WORDS, PACES, WIDGET_WORDS, hear, type HearId } from '../data/listen'
+import type { Profile, Variants } from '../types'
 
 type SpeechResult = { isFinal: boolean; 0: { transcript: string } }
 type SpeechEvent = { results: ArrayLike<SpeechResult> }
@@ -41,6 +41,11 @@ const QUESTIONS: { id: HearId; ask: string; probe: string }[] = [
     probe: 'Too slow to log, numbers that felt stressful, losing motivation, life getting busy — or this might be your first try.',
   },
   {
+    id: 'pace',
+    ask: 'How much would you like me around — a light touch, a steady rhythm, or more detail?',
+    probe: 'A light touch, a steady rhythm, or more detail — whatever feels right.',
+  },
+  {
     id: 'budget',
     ask: "Let's talk groceries. About how much do you like to spend in a week?",
     probe: 'A rough number is enough. If you are a student, you can say that too.',
@@ -71,6 +76,7 @@ const FIELD_TOPIC: Record<string, HearId> = {
   diets: 'diet',
   allergyNote: 'diet',
   pastApps: 'past',
+  pace: 'pace',
   budget: 'budget',
   studentBudget: 'budget',
   shopMode: 'shop',
@@ -91,6 +97,21 @@ async function askYami(turns: Bubble[], profile: Partial<Profile>): Promise<AiRe
 }
 
 export function OnboardingScreen({
+  profile,
+  variant,
+  onChange,
+  onEnter,
+}: {
+  profile: Profile
+  variant: Variants['onboarding']
+  onChange: (patch: Partial<Profile>) => void
+  onEnter: () => void
+}) {
+  if (variant === 'quiz') return <RecapScreen mode="quiz" profile={profile} onChange={onChange} onEnter={onEnter} />
+  return <VoiceOnboarding profile={profile} onChange={onChange} onEnter={onEnter} />
+}
+
+function VoiceOnboarding({
   profile,
   onChange,
   onEnter,
@@ -337,7 +358,7 @@ export function OnboardingScreen({
     }
   }
 
-  if (recap) return <RecapScreen profile={profile} onChange={onChange} onEnter={onEnter} />
+  if (recap) return <RecapScreen mode="recap" profile={profile} onChange={onChange} onEnter={onEnter} />
 
   const footer = done ? (
     <button type="button" className="btn-primary" onClick={() => setRecap(true)}>
@@ -433,11 +454,14 @@ function toggle<T>(list: T[], item: T) {
   return list.includes(item) ? list.filter((value) => value !== item) : [...list, item]
 }
 
+// The end-of-conversation recap doubles as the tap-through quiz for the onboarding A/B test.
 function RecapScreen({
+  mode,
   profile,
   onChange,
   onEnter,
 }: {
+  mode: 'recap' | 'quiz'
   profile: Profile
   onChange: (patch: Partial<Profile>) => void
   onEnter: () => void
@@ -450,12 +474,14 @@ function RecapScreen({
       corner={<Yami pose="rest" className="yami-corner yami-float" />}
       footer={
         <button type="button" className="btn-primary" onClick={onEnter}>
-          Looks right — enter Yami
+          {mode === 'quiz' ? 'Enter Yami' : 'Looks right — enter Yami'}
         </button>
       }
     >
-      <h1>Here's what I heard</h1>
-      <p className="sub">Tap anything to change it. You can always update this later.</p>
+      <h1>{mode === 'quiz' ? 'A few quick questions' : "Here's what I heard"}</h1>
+      <p className="sub">
+        {mode === 'quiz' ? 'Tap what fits. Skip anything you like — you can change it later.' : 'Tap anything to change it. You can always update this later.'}
+      </p>
 
       <section className="recap-block">
         <h2>Name</h2>
@@ -501,6 +527,24 @@ function RecapScreen({
             </button>
           ))}
         </div>
+      </section>
+
+      <section className="recap-block">
+        <h2>How much you'd like me around</h2>
+        <div className="chips">
+          {PACES.map((pace) => (
+            <button
+              key={pace.id}
+              type="button"
+              className={profile.pace === pace.id ? 'chip selected' : 'chip'}
+              aria-pressed={profile.pace === pace.id}
+              onClick={() => onChange({ pace: pace.id })}
+            >
+              {pace.label}
+            </button>
+          ))}
+        </div>
+        {profile.pace ? <p className="note">{PACES.find((pace) => pace.id === profile.pace)?.blurb}</p> : null}
       </section>
 
       <section className="recap-block">

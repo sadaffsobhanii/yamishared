@@ -1,7 +1,7 @@
 import { LANGUAGES } from './languages'
-import type { Profile, WidgetId } from '../types'
+import type { Pace, Profile, WidgetId } from '../types'
 
-export type HearId = 'name' | 'language' | 'goals' | 'diet' | 'past' | 'budget' | 'shop' | 'track'
+export type HearId = 'name' | 'language' | 'goals' | 'diet' | 'past' | 'pace' | 'budget' | 'shop' | 'track'
 
 export type Heard = {
   patch: Partial<Profile>
@@ -92,6 +92,7 @@ export function hear(id: HearId, raw: string, acceptAnyway = false): Heard {
   if (id === 'goals') return hearGoals(raw, text, acceptAnyway)
   if (id === 'diet') return hearDiet(raw, text, acceptAnyway)
   if (id === 'past') return hearPast(text, acceptAnyway)
+  if (id === 'pace') return hearPace(text)
   if (id === 'budget') return hearBudget(text, acceptAnyway)
   if (id === 'shop') return hearShop(text, acceptAnyway)
   return hearTrack(text, acceptAnyway)
@@ -205,6 +206,25 @@ function hearPast(text: string, acceptAnyway: boolean): Heard {
           : "I'll keep the pace gentle either way.",
     understood: true,
   }
+}
+
+export const PACES: { id: Exclude<Pace, ''>; label: string; blurb: string }[] = [
+  { id: 'gentle', label: 'A light touch', blurb: 'Log when you feel like it. Fewer nudges.' },
+  { id: 'steady', label: 'A steady rhythm', blurb: 'A simple routine, most days.' },
+  { id: 'detailed', label: 'More detail', blurb: 'More to notice, still no pressure.' },
+]
+
+function hearPace(text: string): Heard {
+  const gentle = /\b(light|gentle|easy|little|slow|chill|low[- ]key|not much|minimal|relaxed)\b/.test(text)
+  const detailed = /\b(detail|detailed|more|lots|closely|everything|all in|serious|a lot)\b/.test(text)
+  const pace: Pace = gentle ? 'gentle' : detailed ? 'detailed' : 'steady'
+  const reflection =
+    pace === 'gentle'
+      ? "A light touch it is. I'll stay quiet unless you come to me."
+      : pace === 'detailed'
+        ? "Love it. I'll share a bit more each time — still no pressure."
+        : "A steady rhythm — simple, most days. We'll build from there."
+  return { patch: { pace }, reflection, understood: true }
 }
 
 function hearBudget(text: string, acceptAnyway: boolean): Heard {
