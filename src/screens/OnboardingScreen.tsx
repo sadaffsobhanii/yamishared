@@ -94,7 +94,7 @@ export function OnboardingScreen({
   }
 
   useEffect(() => {
-    setBubbles([{ id: uid(), from: 'yami', text: 'Welcome. I love to get to know you.' }])
+    setBubbles([{ id: uid(), from: 'yami', text: 'Welcome. I would love to get to know you.' }])
     later(() => {
       setBubbles((current) => [...current, { id: uid(), from: 'yami', text: QUESTIONS[0].ask }])
       setBusy(false)
