@@ -81,11 +81,11 @@ export function searchMeals(query: string) {
 }
 
 export const SAMPLES: { id: SampleId; label: string; src: string }[] = [
-  { id: 'eggs', label: 'Eggs & toast', src: '/samples/eggs.jpg' },
-  { id: 'smoothie', label: 'Smoothie', src: '/samples/smoothie.jpg' },
-  { id: 'pasta', label: 'Pasta', src: '/samples/pasta.jpg' },
-  { id: 'salad', label: 'Salad', src: '/samples/salad.jpg' },
-  { id: 'soup', label: 'Soup', src: '/samples/soup.jpg' },
+  { id: 'eggs', label: 'Eggs & toast', src: `${import.meta.env.BASE_URL}samples/eggs.jpg` },
+  { id: 'smoothie', label: 'Smoothie', src: `${import.meta.env.BASE_URL}samples/smoothie.jpg` },
+  { id: 'pasta', label: 'Pasta', src: `${import.meta.env.BASE_URL}samples/pasta.jpg` },
+  { id: 'salad', label: 'Salad', src: `${import.meta.env.BASE_URL}samples/salad.jpg` },
+  { id: 'soup', label: 'Soup', src: `${import.meta.env.BASE_URL}samples/soup.jpg` },
 ]
 
 const byId = Object.fromEntries(ANALYSES.map((analysis) => [analysis.id, analysis])) as Record<SampleId, Analysis>
