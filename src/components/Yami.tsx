@@ -14,7 +14,7 @@ export function Yami({ pose = 'rest', className = '' }: YamiProps) {
   return (
     <div className={`yami ${className}`}>
       <svg
-        viewBox={greeting ? '0 0 240 236' : '48 70 144 160'}
+        viewBox={greeting ? '0 0 240 236' : '40 50 160 180'}
         role="img"
         aria-label={greeting ? 'Yami, a round lavender plush with arms open for a hug' : 'Yami, a round lavender plush, smiling'}
       >

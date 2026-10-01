@@ -1,7 +1,7 @@
 import { LANGUAGES } from './languages'
-import type { Profile, WidgetId } from '../types'
+import type { Pace, Profile, WidgetId } from '../types'
 
-export type HearId = 'name' | 'language' | 'goals' | 'diet' | 'past' | 'budget' | 'shop' | 'track'
+export type HearId = 'name' | 'language' | 'goals' | 'diet' | 'past' | 'pace' | 'budget' | 'shop' | 'track'
 
 export type Heard = {
   patch: Partial<Profile>
@@ -9,7 +9,8 @@ export type Heard = {
   understood: boolean
 }
 
-const GOAL_WORDS: { id: string; label: string; words: string[] }[] = [
+export const GOAL_WORDS: { id: string; label: string; words: string[] }[] = [
+  { id: 'weight', label: 'losing weight', words: ['lose weight', 'losing weight', 'weight loss', 'lose some weight', 'lbs', 'pounds', 'kilos', 'kg', 'slim down', 'drop weight', 'get lean'] },
   { id: 'energy', label: 'more energy', words: ['energy', 'energized', 'tired', 'fatigue'] },
   { id: 'muscle', label: 'building muscle', words: ['muscle', 'muscles', 'strength', 'stronger', 'lifting'] },
   { id: 'blood-sugar', label: 'steadier blood sugar', words: ['blood sugar', 'glucose', 'prediabetes'] },
@@ -17,7 +18,7 @@ const GOAL_WORDS: { id: string; label: string; words: string[] }[] = [
   { id: 'aware', label: 'being more aware', words: ['aware', 'awareness', 'mindful', 'noticing'] },
 ]
 
-const DIET_WORDS: { id: string; label: string; words: string[] }[] = [
+export const DIET_WORDS: { id: string; label: string; words: string[] }[] = [
   { id: 'vegetarian', label: 'vegetarian', words: ['vegetarian', 'no meat'] },
   { id: 'vegan', label: 'vegan', words: ['vegan'] },
   { id: 'keto', label: 'keto', words: ['keto', 'low carb', 'low-carb'] },
@@ -28,13 +29,13 @@ const DIET_WORDS: { id: string; label: string; words: string[] }[] = [
 
 const PAST_WORDS: { id: string; label: string; words: string[] }[] = [
   { id: 'too-long', label: 'logging took too long', words: ['too long', 'took forever', 'slow to log', 'logging'] },
-  { id: 'numbers-stress', label: 'numbers felt stressful', words: ['number', 'calorie counting', 'stressful', 'stressed'] },
+  { id: 'numbers-stress', label: 'numbers felt stressful', words: ['number', 'calorie', 'counting', 'stressful', 'stressed', 'trigger', 'anxious', 'anxiety', 'obsess', 'guilt'] },
   { id: 'lost-motivation', label: 'motivation faded', words: ['motivation', 'gave up', 'quit'] },
   { id: 'life-busy', label: 'life got busy', words: ['busy', 'no time', 'hectic'] },
   { id: 'first-time', label: 'this is a first try', words: ['first try', 'first time', 'never used', 'new to this', "haven't tried", 'have not tried'] },
 ]
 
-const WIDGET_WORDS: { id: WidgetId; label: string; words: string[] }[] = [
+export const WIDGET_WORDS: { id: WidgetId; label: string; words: string[] }[] = [
   { id: 'protein', label: 'protein', words: ['protein'] },
   { id: 'fiber', label: 'fiber', words: ['fiber', 'fibre'] },
   { id: 'water', label: 'water', words: ['water', 'hydration'] },
@@ -43,7 +44,7 @@ const WIDGET_WORDS: { id: WidgetId; label: string; words: string[] }[] = [
   { id: 'macros', label: 'macros', words: ['macro'] },
 ]
 
-const STORES: { label: string; words: string[] }[] = [
+export const STORES: { label: string; words: string[] }[] = [
   { label: 'Target', words: ['target'] },
   { label: 'Walmart', words: ['walmart'] },
   { label: 'Whole Foods', words: ['whole foods', 'wholefoods'] },
@@ -91,6 +92,7 @@ export function hear(id: HearId, raw: string, acceptAnyway = false): Heard {
   if (id === 'goals') return hearGoals(raw, text, acceptAnyway)
   if (id === 'diet') return hearDiet(raw, text, acceptAnyway)
   if (id === 'past') return hearPast(text, acceptAnyway)
+  if (id === 'pace') return hearPace(text)
   if (id === 'budget') return hearBudget(text, acceptAnyway)
   if (id === 'shop') return hearShop(text, acceptAnyway)
   return hearTrack(text, acceptAnyway)
@@ -107,7 +109,7 @@ function hearName(raw: string, text: string): Heard {
     .split(/\s+/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
-  return { patch: { name }, reflection: `${name}. Thank you. I'll use that.`, understood: true }
+  return { patch: { name }, reflection: `So nice to meet you, ${name}!`, understood: true }
 }
 
 function hearLanguage(text: string, acceptAnyway: boolean): Heard {
@@ -145,11 +147,13 @@ function hearLanguage(text: string, acceptAnyway: boolean): Heard {
 
 function hearGoals(raw: string, text: string, acceptAnyway: boolean): Heard {
   const goals = GOAL_WORDS.filter((goal) => has(text, goal.words)).map((goal) => goal.id)
-  if (goals.length === 0 && !acceptAnyway) return { patch: {}, reflection: '', understood: false }
+  if (goals.length === 0 && !acceptAnyway && raw.trim().length < 3) return { patch: {}, reflection: '', understood: false }
   const labels = GOAL_WORDS.filter((goal) => goals.includes(goal.id)).map((goal) => goal.label)
-  const reflection = labels.length
-    ? `${cap(join(labels))}. I'll let that shape the ideas — not a strict plan.`
-    : "I'll hold onto your words, and keep the ideas flexible."
+  const reflection = goals.includes('weight')
+    ? "Got it. We'll go gently — small changes, one meal at a time, no strict plan."
+    : labels.length
+    ? `${cap(join(labels))} — I love that. We'll get there one meal at a time, no strict plan.`
+    : "Thank you for putting it in your own words. I'll keep that close."
   return {
     patch: { goals, goalCustom: labels.length ? '' : raw.trim() },
     reflection,
@@ -163,7 +167,7 @@ function hearDiet(raw: string, text: string, acceptAnyway: boolean): Heard {
   if (diets.length === 0 && nothing) {
     return {
       patch: { diets: ['none'], allergyNote: '', doctorNote: '' },
-      reflection: "Nothing specific to plan around. Grocery ideas can stay open.",
+      reflection: "Easy — no rules to work around, then.",
       understood: true,
     }
   }
@@ -177,8 +181,8 @@ function hearDiet(raw: string, text: string, acceptAnyway: boolean): Heard {
   return {
     patch: { diets, allergyNote, doctorNote },
     reflection: labels.length
-      ? `I'll keep grocery ideas inside that: ${join(labels)}.`
-      : "I'll remember what you said, and we can refine it later.",
+      ? `Got it — ${join(labels)}. I'll never suggest anything that doesn't fit.`
+      : "Got it. I'll remember that, and you can fine-tune it anytime.",
     understood: true,
   }
 }
@@ -186,7 +190,7 @@ function hearDiet(raw: string, text: string, acceptAnyway: boolean): Heard {
 function hearPast(text: string, acceptAnyway: boolean): Heard {
   const pastApps = PAST_WORDS.filter((item) => has(text, item.words)).map((item) => item.id)
   if (/\b(no|nope|they were fine|nothing)\b/.test(text) && pastApps.length === 0) {
-    return { patch: { pastApps: [] }, reflection: "Good to know they didn't get in the way. We'll still keep this light.", understood: true }
+    return { patch: { pastApps: [] }, reflection: "Good to hear! We'll still keep things light.", understood: true }
   }
   if (pastApps.length === 0 && !acceptAnyway) return { patch: {}, reflection: '', understood: false }
   const labels = PAST_WORDS.filter((item) => pastApps.includes(item.id)).map((item) => item.label)
@@ -194,12 +198,33 @@ function hearPast(text: string, acceptAnyway: boolean): Heard {
   return {
     patch: { pastApps },
     reflection: quiet
-      ? "Numbers can stay quiet. We'll go by what you choose to notice."
-      : labels.length
-        ? `${cap(join(labels))}. I'll keep the tracking lighter because of that.`
-        : "I'll keep the pace gentle either way.",
+      ? "Thank you for telling me. Calories stay completely out of sight here — you'll never have to count anything."
+      : pastApps.length === 1 && pastApps[0] === 'first-time'
+        ? "Then we'll start fresh together. No pressure."
+        : labels.length
+          ? `That makes total sense. I'll keep things quick and light so that doesn't happen here.`
+          : "I'll keep the pace gentle either way.",
     understood: true,
   }
+}
+
+export const PACES: { id: Exclude<Pace, ''>; label: string; blurb: string }[] = [
+  { id: 'gentle', label: 'Stay quiet', blurb: 'Yami only speaks up when you log a meal. No reminders.' },
+  { id: 'steady', label: 'Once a day', blurb: 'One gentle check-in a day.' },
+  { id: 'detailed', label: 'More tips', blurb: 'A daily check-in plus a little more explanation with each meal.' },
+]
+
+function hearPace(text: string): Heard {
+  const gentle = /\b(quiet|light|gentle|easy|little|slow|chill|low[- ]key|not much|minimal|relaxed|leave me|only when|no reminders?)\b/.test(text)
+  const detailed = /\b(tips|detail|detailed|more|lots|closely|everything|all in|serious|a lot)\b/.test(text)
+  const pace: Pace = gentle ? 'gentle' : detailed ? 'detailed' : 'steady'
+  const reflection =
+    pace === 'gentle'
+      ? "Got it — I'll stay quiet until you log a meal. No reminders."
+      : pace === 'detailed'
+        ? "Love it. I'll check in once a day and share a few more tips with each meal."
+        : "Once a day it is — one gentle check-in, nothing more."
+  return { patch: { pace }, reflection, understood: true }
 }
 
 function hearBudget(text: string, acceptAnyway: boolean): Heard {
@@ -211,8 +236,8 @@ function hearBudget(text: string, acceptAnyway: boolean): Heard {
   const patch: Partial<Profile> = { studentBudget }
   if (budget) patch.budget = budget
   const reflection = [
-    budget ? `About $${budget} a week.` : 'No exact number — that is fine.',
-    studentBudget ? "I'll lean toward simpler, lower-cost ideas." : 'Ideas can stay inside what feels comfortable.',
+    budget ? `About $${budget} a week — I can work with that.` : 'No exact number needed.',
+    studentBudget ? "I'll lean toward budget-friendly picks." : "I'll keep ideas inside what feels comfortable.",
   ].join(' ')
   return { patch, reflection, understood: true }
 }
@@ -224,10 +249,15 @@ function hearShop(text: string, acceptAnyway: boolean): Heard {
   const both = /\bboth\b/.test(text) || (online && inStore)
   const shopMode: Profile['shopMode'] = both ? 'both' : online ? 'online' : inStore || store ? 'in-store' : ''
   if (!shopMode && !acceptAnyway) return { patch: {}, reflection: '', understood: false }
-  const modeLabel = shopMode === 'both' ? 'Both in-store and online' : shopMode === 'online' ? 'Ordering online' : 'An in-store list'
+  const modeLine =
+    shopMode === 'both'
+      ? "I'll give you a list and a cart option — whatever fits the day."
+      : shopMode === 'online'
+        ? "I'll set things up so you can add ideas straight to your cart."
+        : "I'll make you lists that are easy to take to the store."
   return {
     patch: { shopMode: shopMode || 'in-store', shopStore: store, shopStoreCustom: '' },
-    reflection: store ? `${modeLabel}, often at ${store}.` : `${modeLabel}. You can name a store later.`,
+    reflection: store ? `${store} — great. ${modeLine}` : modeLine,
     understood: true,
   }
 }
@@ -246,7 +276,7 @@ function hearTrack(text: string, acceptAnyway: boolean): Heard {
   const quiet = !wantsCalories && !wantsWeight
   return {
     patch: { widgets: chosen, trackCalories: wantsCalories, trackWeight: wantsWeight },
-    reflection: `${cap(join(labels)) || 'A light home screen'}. ${quiet ? 'Calories and weight stay off unless you ask later.' : 'Only what you asked for is on.'}`,
+    reflection: `${labels.length ? `${cap(join(labels))} it is.` : "We'll keep your home screen light."}${quiet ? ' Calories and weight stay hidden unless you ask.' : ''}`,
     understood: true,
   }
 }

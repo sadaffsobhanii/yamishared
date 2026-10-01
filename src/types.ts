@@ -14,11 +14,30 @@ export type Language = {
   phrases: Record<PhraseKind, Phrase>
 }
 
-export type SampleId = 'eggs' | 'smoothie' | 'pasta' | 'salad' | 'soup'
+export type SampleId = 'eggs' | 'smoothie' | 'pasta' | 'salad' | 'soup' | 'other'
 
 export type MealImage =
   | { kind: 'sample'; id: SampleId }
   | { kind: 'photo'; src: string }
+  | { kind: 'none' }
+
+export type Pace = '' | 'gentle' | 'steady' | 'detailed'
+
+export type FavoriteMeal = {
+  id: string
+  image: MealImage
+  items: string[]
+  analysisId: SampleId
+}
+
+// Prototype study arms from PRD section 8. The first value of each is the default.
+export type Variants = {
+  onboarding: 'voice' | 'quiz'
+  logging: 'edit' | 'photo-only'
+  recommendation: 'next-step' | 'data-only'
+  grocery: 'cart' | 'list-only'
+  checkin: 'on' | 'off'
+}
 
 export type WidgetId = 'protein' | 'fiber' | 'water' | 'energy' | 'consistency' | 'macros' | 'calories' | 'weight'
 
@@ -66,6 +85,11 @@ export type Profile = {
   insightWidgets: InsightWidgetId[]
   trackCalories: boolean
   trackWeight: boolean
+  pace: Pace
+  reminders: boolean
+  reminderTime: string
+  quietStart: string
+  quietEnd: string
 }
 
 export type GroceryItem = {
@@ -123,6 +147,11 @@ export const emptyProfile: Profile = {
   insightWidgets: [],
   trackCalories: false,
   trackWeight: false,
+  pace: '',
+  reminders: false,
+  reminderTime: '12:30',
+  quietStart: '21:00',
+  quietEnd: '08:00',
 }
 
 export function scoreTone(score: number): 'high' | 'mid' | 'low' {

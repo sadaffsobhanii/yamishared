@@ -1,15 +1,27 @@
 import { useRef, useState } from 'react'
 import { Yami } from '../components/Yami'
 import { PrimaryButton, Screen } from '../components/ui'
+import { badges, nextStep, wins } from '../data/progress'
+import type { GroceryItem, LoggedMeal, Profile } from '../types'
 
 const CHIPS = ['I felt more energized', 'Tracking felt easy', 'I got busy', 'I need simpler ideas', 'I want to change my focus']
 
 export function CheckInScreen({
   done,
+  profile,
+  meals,
+  grocery,
+  water,
+  answers: saved,
   onDone,
   onBack,
 }: {
   done: boolean
+  profile: Profile
+  meals: LoggedMeal[]
+  grocery: GroceryItem[]
+  water: number
+  answers: string[]
   onDone: (answers: string[]) => void
   onBack: () => void
 }) {
@@ -46,13 +58,36 @@ export function CheckInScreen({
   }
 
   if (done) {
+    const week = { meals, grocery, water, checkInDone: true, answers: saved }
+    const earned = badges(week).filter((badge) => badge.earned)
     return (
-      <Screen className="checkin" onBack={onBack} footer={<PrimaryButton onClick={onBack}>Back home</PrimaryButton>}>
+      <Screen className="checkin recap-week" onBack={onBack} footer={<PrimaryButton onClick={onBack}>Back home</PrimaryButton>}>
         <div className="hero">
           <Yami pose="rest" className="yami-md yami-float" />
-          <h1>Thanks for checking in.</h1>
-          <p className="sub">Next week, we'll keep things simple.</p>
+          <h1>Your Sunday recap{profile.name ? `, ${profile.name}` : ''}</h1>
+          <p className="sub">Three wins, and one small idea. That's it.</p>
         </div>
+        <section className="swap-card">
+          <p className="swap-kicker">Three wins this week</p>
+          <ol className="wins">
+            {wins(week).map((win) => (
+              <li key={win}>{win}</li>
+            ))}
+          </ol>
+        </section>
+        <section className="swap-card">
+          <p className="swap-kicker">One small idea for next week</p>
+          <p>{nextStep(week)}</p>
+        </section>
+        {earned.length > 0 && (
+          <div className="badge-row">
+            {earned.map((badge) => (
+              <span key={badge.id} className="badge">
+                {badge.label}
+              </span>
+            ))}
+          </div>
+        )}
       </Screen>
     )
   }
