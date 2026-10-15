@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
+import { Yami } from '../components/Yami'
 import { SAMPLES } from '../data/meals'
+import { mealTiming } from '../data/rhythm'
+import { equippedLook } from '../data/wardrobe'
 import { CameraIcon, Screen } from '../components/ui'
-import type { MealImage, SampleId } from '../types'
+import { useClock } from '../useClock'
+import type { LoggedMeal, MealImage, Profile, SampleId } from '../types'
 
 async function fileToPhoto(file: File): Promise<string> {
   const dataUrl = await new Promise<string>((resolve, reject) => {
@@ -30,12 +34,18 @@ async function fileToPhoto(file: File): Promise<string> {
 }
 
 export function SnapScreen({
+  profile,
+  meals,
   onBack,
   onCapture,
 }: {
+  profile: Profile
+  meals: LoggedMeal[]
   onBack: () => void
   onCapture: (image: MealImage, hint: string) => void
 }) {
+  const timing = mealTiming(useClock(), meals, 'snap')
+  const look = equippedLook(profile)
   const videoRef = useRef<HTMLVideoElement>(null)
   const uploadRef = useRef<HTMLInputElement>(null)
   const cameraFileRef = useRef<HTMLInputElement>(null)
@@ -106,7 +116,10 @@ export function SnapScreen({
   return (
     <Screen className="snap" onBack={onBack}>
       <h1>Show me your meal</h1>
-      <p className="sub">A photo is plenty. I'll take a look with you.</p>
+      <div className="timing-row">
+        <Yami mood={timing.mood} character={look.character} outfit={look.outfit} className="yami-sm" />
+        <p>{timing.line}</p>
+      </div>
 
       <div className="viewfinder">
         <span className="bracket tl" />

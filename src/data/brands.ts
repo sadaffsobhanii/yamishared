@@ -238,6 +238,22 @@ const STORE_DIRECTORY: { names: string[]; store: StoreRecord }[] = [
     },
   },
   {
+    names: ['ralphs', "ralph's"],
+    store: {
+      label: 'Ralphs',
+      home: 'https://www.ralphs.com/',
+      search: (query) => `https://www.ralphs.com/search?query=${enc(query)}`,
+    },
+  },
+  {
+    names: ['sprouts'],
+    store: {
+      label: 'Sprouts',
+      home: 'https://www.sprouts.com/',
+      search: (query) => `https://shop.sprouts.com/search?search_term=${enc(query)}`,
+    },
+  },
+  {
     names: ['safeway'],
     store: {
       label: 'Safeway',

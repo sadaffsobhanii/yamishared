@@ -1,8 +1,9 @@
 import { MealVisual } from '../components/MealVisual'
-import { Phrase } from '../components/Phrase'
+import { Yami } from '../components/Yami'
 import { CameraIcon, CartIcon, SafetyNote, Screen, TabBar, type TabId } from '../components/ui'
-import { budgetHint } from '../data/grocery'
-import { getLanguage } from '../data/languages'
+import { mealTiming } from '../data/rhythm'
+import { equippedLook } from '../data/wardrobe'
+import { useClock } from '../useClock'
 import type { GroceryItem, LoggedMeal, Profile, WidgetId } from '../types'
 
 const WIDGET_LABEL: Record<WidgetId, string> = {
@@ -33,53 +34,43 @@ export function HomeScreen({
   meals,
   grocery,
   water,
-  checkInDone,
   onSnap,
   onWater,
-  onCheckIn,
   onTab,
 }: {
   profile: Profile
   meals: LoggedMeal[]
   grocery: GroceryItem[]
   water: number
-  checkInDone: boolean
   onSnap: () => void
   onWater: () => void
-  onCheckIn: () => void
   onTab: (tab: TabId) => void
 }) {
-  const language = getLanguage(profile.languageId)
   const widgets: WidgetId[] = [
     ...profile.widgets,
     ...(profile.trackCalories ? (['calories'] as WidgetId[]) : []),
     ...(profile.trackWeight ? (['weight'] as WidgetId[]) : []),
   ]
-  const openItems = grocery.filter((item) => !item.done)
-  const preview = [...openItems.filter((item) => item.fromMeal), ...openItems.filter((item) => !item.fromMeal)].slice(0, 2)
+  const openCount = grocery.filter((item) => !item.done).length
+  const timing = mealTiming(useClock(), meals, 'home')
+  const look = equippedLook(profile)
 
   return (
     <Screen className="home" footer={<TabBar current="home" onChange={onTab} />}>
       <header className="home-header">
-        <div>
-          <h1>
-            {language ? (
-              <>
-                <Phrase language={language} kind="greeting" />, {profile.name}
-              </>
-            ) : (
-              <>Hey {profile.name}</>
-            )}
-          </h1>
-          <p className="sub">What would feel good to focus on today?</p>
-        </div>
-        <button type="button" className="cart-button" onClick={() => onTab('grocery')} aria-label={`Grocery list, ${preview.length} to pick up`}>
+        <button type="button" className="cart-button" onClick={() => onTab('grocery')} aria-label={`Grocery list, ${openCount} to pick up`}>
           <CartIcon />
-          {grocery.filter((item) => !item.done).length > 0 ? (
-            <span className="cart-badge">{grocery.filter((item) => !item.done).length}</span>
-          ) : null}
+          {openCount > 0 ? <span className="cart-badge">{openCount}</span> : null}
         </button>
       </header>
+
+      <div className="yami-presence">
+        <Yami mood={timing.mood} character={look.character} outfit={look.outfit} className="yami-md yami-float" />
+        <p className="yami-cue">{timing.line}</p>
+        <button type="button" className="streak-pill" onClick={() => onTab('profile')}>
+          {profile.bestStreak === 0 ? 'Dress Yami' : `${profile.bestStreak}-day streak · Dress Yami`}
+        </button>
+      </div>
 
       <button type="button" className="snap-button" onClick={onSnap}>
         <span className="snap-icon">
@@ -108,33 +99,6 @@ export function HomeScreen({
           </div>
         </section>
       )}
-
-      <section className="preview-card">
-        <div className="preview-head">
-          <h2>Grocery list</h2>
-          <button type="button" className="text-button" onClick={() => onTab('grocery')}>
-            Open
-          </button>
-        </div>
-        {preview.length === 0 ? (
-          <p className="sub">Your list is clear for now.</p>
-        ) : (
-          <ul className="preview-list">
-            {preview.map((item) => (
-              <li key={item.id}>
-                {item.text}
-                {item.fromMeal ? <span className="pill">From a meal idea</span> : null}
-                {budgetHint(item.text, profile) ? <span className="for-line">{budgetHint(item.text, profile)}</span> : null}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <button type="button" className="checkin-card" onClick={onCheckIn}>
-        <span className="widget-label">Weekly voice check-in</span>
-        <span>{checkInDone ? 'Thanks for checking in. Next week, we’ll keep things simple.' : 'Time for your Yami check-in'}</span>
-      </button>
 
       <section className="today">
         <h2>Recent meals</h2>

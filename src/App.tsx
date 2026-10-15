@@ -1,169 +1,87 @@
-import { useEffect, useState } from 'react'
-import { seedGrocery } from './data/grocery'
-import { analysisFromItems, hasProtein, pickAnalysis, recommendFor } from './data/meals'
-import { AnalyzingScreen } from './screens/AnalyzingScreen'
-import { CheckInScreen } from './screens/CheckInScreen'
-import { ConfirmScreen } from './screens/ConfirmScreen'
-import { GroceryScreen } from './screens/GroceryScreen'
-import { HomeScreen } from './screens/HomeScreen'
-import { InsightsScreen, seedInsightWidgets } from './screens/InsightsScreen'
-import { OnboardingScreen } from './screens/OnboardingScreen'
-import { ProfileScreen } from './screens/ProfileScreen'
-import { ResultScreen } from './screens/ResultScreen'
-import { SnapScreen } from './screens/SnapScreen'
-import type { TabId } from './components/ui'
-import type { Draft, GroceryItem, LoggedMeal, MealImage, MealResult, Profile } from './types'
-import { emptyProfile } from './types'
+import { Cart } from './proto/Cart'
+import { Chef } from './proto/Chef'
+import { Home } from './proto/Home'
+import { Insights } from './proto/Insights'
+import { Log } from './proto/Log'
+import { Onboarding } from './proto/Onboarding'
+import { Order } from './proto/Order'
+import { YamiProvider, useYami, type Tab } from './proto/store'
+import { Weekly } from './proto/Weekly'
+import { You } from './proto/You'
 
-type Route = 'onboarding' | 'home' | 'snap' | 'analyzing' | 'confirm' | 'result' | 'grocery' | 'insights' | 'checkin' | 'profile'
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'home', label: 'Home' },
+  { id: 'order', label: 'Order Smart' },
+  { id: 'log', label: '' },
+  { id: 'progress', label: 'Insights' },
+  { id: 'you', label: 'You' },
+]
+
+function ChefHat() {
+  return (
+    <svg width="34" height="30" viewBox="0 0 34 30" aria-hidden="true">
+      <path d="M8 20c-5-1-7-8-2-11 1-5 7-7 10-3 3-4 9-3 10 2 5 0 7 7 2 10z" fill="#fff" />
+      <rect x="8" y="20" width="18" height="7" rx="2" fill="#fff" />
+      <path d="M13 15v4M17 13v6M21 15v4" stroke="#8C6BCF" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}
 
 export default function App() {
-  const [route, setRoute] = useState<Route>('onboarding')
-  const [profile, setProfile] = useState<Profile>(emptyProfile)
-  const [grocery, setGrocery] = useState<GroceryItem[]>([])
-  const [meals, setMeals] = useState<LoggedMeal[]>([])
-  const [draft, setDraft] = useState<Draft | null>(null)
-  const [result, setResult] = useState<MealResult | null>(null)
-  const [instacartConnected, setInstacartConnected] = useState(false)
-  const [listMode, setListMode] = useState<'in-store' | 'online'>('in-store')
-  const [water, setWater] = useState(0)
-  const [energy, setEnergy] = useState<number | null>(null)
-  const [checkInDone, setCheckInDone] = useState(false)
-
-  useEffect(() => {
-    if (route !== 'analyzing') return
-    const timeout = window.setTimeout(() => setRoute('confirm'), 2000)
-    return () => window.clearTimeout(timeout)
-  }, [route])
-
-  function patchProfile(patch: Partial<Profile>) {
-    setProfile((current) => ({ ...current, ...patch }))
-  }
-
-  function goTab(tab: TabId) {
-    setRoute(tab)
-  }
-
-  function beginAnalysis(image: MealImage, hint: string) {
-    const analysis = pickAnalysis(hint)
-    setDraft({ image, items: [...analysis.items], analysisId: analysis.id })
-    setRoute('analyzing')
-  }
-
-  function looksRight() {
-    if (!draft || draft.items.length === 0) return
-    const analysis = analysisFromItems(draft.items, draft.analysisId)
-    const idea = recommendFor(analysis, profile)
-    setResult({
-      image: draft.image,
-      items: [...draft.items],
-      analysis,
-      summary: idea.summary,
-      recommendation: idea.recommendation,
-      why: idea.why,
-      swapItem: idea.swapItem,
-      budgetNote: idea.budgetNote,
-      added: false,
-    })
-    setRoute('result')
-  }
-
-  function addSwap() {
-    if (!result || result.added) return
-    setGrocery((items) => {
-      const exists = items.some((item) => item.text.toLowerCase() === result.swapItem.toLowerCase())
-      if (exists) return items.map((item) => (item.text.toLowerCase() === result.swapItem.toLowerCase() ? { ...item, fromMeal: true } : item))
-      return [...items, { id: crypto.randomUUID(), text: result.swapItem, done: false, fromMeal: true }]
-    })
-    setResult({ ...result, added: true })
-  }
-
-  function logMeal() {
-    if (!result) return
-    setMeals((current) => [
-      {
-        id: crypto.randomUUID(),
-        image: result.image,
-        items: result.items,
-        summary: result.summary,
-        time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
-        hadProtein: hasProtein(result.items),
-        suggestion: result.recommendation,
-      },
-      ...current,
-    ])
-    setRoute('home')
-  }
-
   return (
-    <div className="app-root">
-      {route === 'onboarding' && (
-        <OnboardingScreen
-          onChange={patchProfile}
-          onEnter={() => {
-            setProfile((current) => ({ ...current, insightWidgets: seedInsightWidgets(current) }))
-            setGrocery(seedGrocery(profile))
-            setListMode(profile.shopMode === 'online' ? 'online' : 'in-store')
-            setRoute('home')
-          }}
-        />
-      )}
-      {route === 'home' && (
-        <HomeScreen
-          profile={profile}
-          meals={meals}
-          grocery={grocery}
-          water={water}
-          checkInDone={checkInDone}
-          onSnap={() => setRoute('snap')}
-          onWater={() => setWater((count) => count + 1)}
-          onCheckIn={() => setRoute('checkin')}
-          onTab={goTab}
-        />
-      )}
-      {route === 'insights' && (
-        <InsightsScreen
-          profile={profile}
-          meals={meals}
-          grocery={grocery}
-          water={water}
-          energy={energy}
-          onChange={patchProfile}
-          onWater={() => setWater((count) => Math.min(count + 1, 8))}
-          onEnergy={setEnergy}
-          onTab={goTab}
-        />
-      )}
-      {route === 'profile' && <ProfileScreen profile={profile} onChange={patchProfile} onTab={goTab} />}
-      {route === 'checkin' && (
-        <CheckInScreen done={checkInDone} onDone={() => setCheckInDone(true)} onBack={() => setRoute('home')} />
-      )}
-      {route === 'snap' && <SnapScreen onBack={() => setRoute('home')} onCapture={beginAnalysis} />}
-      {route === 'analyzing' && <AnalyzingScreen profile={profile} />}
-      {route === 'confirm' && draft && (
-        <ConfirmScreen
-          items={draft.items}
-          onChange={(items) => setDraft({ ...draft, items })}
-          onBack={() => setRoute('snap')}
-          onLooksRight={looksRight}
-        />
-      )}
-      {route === 'result' && result && (
-        <ResultScreen profile={profile} result={result} onBack={() => setRoute('confirm')} onAdd={addSwap} onLog={logMeal} />
-      )}
-      {route === 'grocery' && (
-        <GroceryScreen
-          profile={profile}
-          items={grocery}
-          instacartConnected={instacartConnected}
-          listMode={listMode}
-          onListMode={setListMode}
-          onChange={setGrocery}
-          onToggleInstacart={() => setInstacartConnected((connected) => !connected)}
-          onBack={() => setRoute('home')}
-          onTab={goTab}
-        />
-      )}
+    <YamiProvider>
+      <Shell />
+    </YamiProvider>
+  )
+}
+
+function Shell() {
+  const { P, tab, go, toastMsg, weekly, cartOpen, chefOpen, dayMode } = useYami()
+  const onboard = !P.onboarded
+  return (
+    <div className="stage">
+      <div className={`app${dayMode === 'casual' ? '' : ` mode-${dayMode}`}`}>
+        <main className={`screen${onboard ? ' noTab ob' : ''}`}>
+          {onboard && <Onboarding />}
+          {!onboard && tab === 'home' && <Home />}
+          {!onboard && tab === 'log' && <Log />}
+          {!onboard && tab === 'order' && <Order />}
+          {!onboard && tab === 'progress' && <Insights />}
+          {!onboard && tab === 'you' && <You />}
+        </main>
+        {!onboard && (
+          <nav className="tabbar">
+            {TABS.map(item => (
+              <button
+                key={item.id}
+                className={item.id === 'log' ? 'plus' : undefined}
+                aria-label={item.id === 'log' ? 'Chef Yami' : item.label}
+                aria-current={tab === item.id ? 'page' : undefined}
+                onClick={() => go(item.id)}
+              >
+                {item.id === 'log' ? <ChefHat /> : item.label}
+              </button>
+            ))}
+          </nav>
+        )}
+        {toastMsg && <div className="toast">{toastMsg}</div>}
+        {weekly != null && <Weekly />}
+        {cartOpen && <Cart />}
+        {chefOpen && <Chef />}
+      </div>
+      <aside className="side">
+        <h1>Yami prototype</h1>
+        <p>A clickable demo for testing. Try it the way a new user would.</p>
+        <ol>
+          <li>Answer the onboarding questions</li>
+          <li>Tap the chef hat and log a meal</li>
+          <li>Order a meal on Order Smart</li>
+          <li>Check your Fuel Score on Home and Insights</li>
+          <li>Open Yami Weekly from Home</li>
+          <li>Change your plan on You</li>
+        </ol>
+        <p className="note">Restaurant numbers are sample estimates. Photos stay on your device. Yami offers general guidance, not medical advice.</p>
+      </aside>
     </div>
   )
 }

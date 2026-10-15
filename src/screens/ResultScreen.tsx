@@ -4,6 +4,7 @@ import { Phrase } from '../components/Phrase'
 import { Yami } from '../components/Yami'
 import { PrimaryButton, SafetyNote, Screen } from '../components/ui'
 import { getLanguage } from '../data/languages'
+import { equippedLook } from '../data/wardrobe'
 import type { MealResult, Profile } from '../types'
 
 export function ResultScreen({
@@ -20,6 +21,7 @@ export function ResultScreen({
   onLog: () => void
 }) {
   const language = getLanguage(profile.languageId)
+  const look = equippedLook(profile)
   const [whyOpen, setWhyOpen] = useState(false)
   const [showScore, setShowScore] = useState(false)
   const hideNumbers = profile.pastApps.includes('numbers-stress') && !profile.trackCalories
@@ -31,7 +33,7 @@ export function ResultScreen({
       </div>
       <p className="items-line">{result.items.join(' · ')}</p>
       <div className="speech">
-        <Yami pose="rest" className="yami-sm" />
+        <Yami mood={result.timing.mood} character={look.character} outfit={look.outfit} className="yami-sm" />
         <div className="bubble">
           <p>
             {language ? (
@@ -41,6 +43,7 @@ export function ResultScreen({
             ) : null}
             {result.summary}
           </p>
+          <p className="timing-line">{result.timing.line}</p>
         </div>
       </div>
 

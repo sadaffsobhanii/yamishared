@@ -11,7 +11,7 @@ export function seedGrocery(profile: Profile): GroceryItem[] {
   const vegan = diets.has('vegan')
   const dairyFree = vegan || /dairy|lactose/.test(notes)
   const keto = diets.has('keto')
-  const tight = profile.studentBudget || (Number(profile.budget) > 0 && Number(profile.budget) <= 80)
+  const tight = profile.budgetMinded || profile.studentBudget || (Number(profile.budget) > 0 && Number(profile.budget) <= 80)
   const picks: string[] = []
 
   if (dairyFree) add(picks, 'Oat milk')
@@ -37,7 +37,7 @@ export function seedGrocery(profile: Profile): GroceryItem[] {
 }
 
 export function budgetHint(text: string, profile: Profile): string | null {
-  const tight = profile.studentBudget || (Number(profile.budget) > 0 && Number(profile.budget) <= 80)
+  const tight = profile.budgetMinded || profile.studentBudget || (Number(profile.budget) > 0 && Number(profile.budget) <= 80)
   if (!tight) return null
   if (/yogurt|oat milk|olive oil|chocolate/i.test(text)) {
     return 'A gentler price: the store brand is usually enough.'

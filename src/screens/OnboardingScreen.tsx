@@ -1,337 +1,478 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Yami } from '../components/Yami'
-import { Screen } from '../components/ui'
-import { hear, type HearId } from '../data/listen'
-import type { Profile } from '../types'
+import { PrimaryButton, Screen } from '../components/ui'
+import type {
+  CookFeel,
+  DietChoice,
+  LoveId,
+  MealSources,
+  PastChoice,
+  PrepHabit,
+  Profile,
+  ShopFrequency,
+  StoreChoice,
+  SupportId,
+  WidgetId,
+} from '../types'
+import { emptyProfile } from '../types'
 
-type SpeechResult = { isFinal: boolean; 0: { transcript: string } }
-type SpeechEvent = { results: ArrayLike<SpeechResult> }
-type SpeechRec = {
-  continuous: boolean
-  interimResults: boolean
-  lang: string
-  onresult: ((event: SpeechEvent) => void) | null
-  onerror: (() => void) | null
-  onend: (() => void) | null
-  start: () => void
-  stop: () => void
-}
+const STEPS = ['name', 'loves', 'support', 'diet', 'past', 'hello', 'sources', 'cook', 'prep', 'shop', 'stores', 'budget', 'thanks'] as const
+type StepId = (typeof STEPS)[number]
 
-type Bubble = { id: string; from: 'yami' | 'you'; text: string; voice?: boolean }
-
-const QUESTIONS: { id: HearId; ask: string; probe: string }[] = [
-  {
-    id: 'name',
-    ask: 'What should I call you?',
-    probe: 'Just a name is enough — whatever you go by.',
-  },
-  {
-    id: 'language',
-    ask: 'Is there another language you speak at home? Even a little is welcome.',
-    probe: 'English is fine. Or name the language, however you say it.',
-  },
-  {
-    id: 'goals',
-    ask: 'What would you like this to help with?',
-    probe: 'Energy, building muscle, blood sugar, feeling better around food, being more aware — or say it your own way.',
-  },
-  {
-    id: 'diet',
-    ask: 'How do you like to eat? Any foods you leave out, or a way of eating that matters to you?',
-    probe: 'Vegetarian, vegan, keto, an allergy, something a doctor already suggested, eating out a lot — or nothing specific.',
-  },
-  {
-    id: 'past',
-    ask: 'Have nutrition apps gotten in the way before?',
-    probe: 'Too slow to log, numbers that felt stressful, losing motivation, life getting busy — or this might be your first try.',
-  },
-  {
-    id: 'budget',
-    ask: 'What feels comfortable to spend on groceries in a week?',
-    probe: 'A rough number is enough. If you are a student, you can say that too.',
-  },
-  {
-    id: 'shop',
-    ask: 'Do you usually shop in the store, order online, or both?',
-    probe: 'In the store, online, or both — and a store name, if one comes to mind.',
-  },
-  {
-    id: 'track',
-    ask: 'What would you like to notice? Not everything — just what would feel good on your home screen.',
-    probe: 'Protein, fiber, water, energy, meal consistency, macros. Calories and weight only if you want them.',
-  },
+const LOVES: { id: LoveId; label: string }[] = [
+  { id: 'energy', label: 'More energy' },
+  { id: 'protein', label: 'More protein' },
+  { id: 'lighter', label: 'Feeling lighter' },
+  { id: 'strength', label: 'Building strength' },
+  { id: 'blood-sugar', label: 'Steadier blood sugar' },
+  { id: 'peace', label: 'Feeling at peace with food' },
+  { id: 'eating-well', label: 'Simply eating well' },
 ]
 
-function uid() {
-  return crypto.randomUUID()
+const SUPPORT: { id: SupportId; label: string }[] = [
+  { id: 'what-to-eat', label: 'Knowing what to eat' },
+  { id: 'ordering', label: 'Ordering healthier' },
+  { id: 'simple-meals', label: 'Cooking simple meals' },
+  { id: 'planning', label: 'Planning my meals' },
+  { id: 'consistent', label: 'Staying consistent' },
+  { id: 'budget', label: 'Eating well on a budget' },
+  { id: 'understanding', label: 'Understanding nutrition' },
+]
+
+const DIETS: { id: DietChoice; label: string }[] = [
+  { id: 'none', label: 'No preference' },
+  { id: 'vegetarian', label: 'Vegetarian' },
+  { id: 'vegan', label: 'Vegan' },
+  { id: 'pescatarian', label: 'Pescatarian' },
+  { id: 'keto', label: 'Keto' },
+  { id: 'halal', label: 'Halal' },
+  { id: 'gluten-free', label: 'Gluten-free' },
+  { id: 'dairy-free', label: 'Dairy-free' },
+  { id: 'allergies', label: 'I have allergies' },
+]
+
+const PAST: { id: PastChoice; label: string }[] = [
+  { id: 'first-time', label: 'This is my first time' },
+  { id: 'too-long', label: 'Logging took too long' },
+  { id: 'numbers-stress', label: 'The numbers felt stressful' },
+  { id: 'lost-motivation', label: 'I lost motivation along the way' },
+]
+
+const COOK: { id: CookFeel; label: string }[] = [
+  { id: 'rather-not', label: "I'd rather not cook" },
+  { id: 'simple', label: 'Simple meals are my thing' },
+  { id: 'few-times', label: 'I cook a few times a week' },
+  { id: 'love-kitchen', label: 'I love being in the kitchen' },
+]
+
+const PREP: { id: PrepHabit; label: string }[] = [
+  { id: 'not-really', label: 'Not really' },
+  { id: 'like-to-start', label: "I'd like to start" },
+  { id: 'sometimes', label: 'Sometimes' },
+  { id: 'every-week', label: 'Every week' },
+]
+
+const SHOP: { id: ShopFrequency; label: string }[] = [
+  { id: 'rarely', label: 'Rarely' },
+  { id: 'couple-weeks', label: 'Every couple of weeks' },
+  { id: 'weekly', label: 'Once a week' },
+  { id: 'few-times', label: 'A few times a week' },
+]
+
+const STORES: { id: StoreChoice; label: string }[] = [
+  { id: 'trader-joes', label: "Trader Joe's" },
+  { id: 'ralphs', label: 'Ralphs' },
+  { id: 'target', label: 'Target' },
+  { id: 'whole-foods', label: 'Whole Foods' },
+  { id: 'costco', label: 'Costco' },
+  { id: 'sprouts', label: 'Sprouts' },
+  { id: 'local', label: 'A local market' },
+  { id: 'instacart', label: 'Online, like Instacart' },
+]
+
+const SOURCE_LABEL = ['Rarely', 'Sometimes', 'Often', 'Most days'] as const
+
+const STORE_LABEL: Record<Exclude<StoreChoice, 'instacart'>, string> = {
+  'trader-joes': "Trader Joe's",
+  ralphs: 'Ralphs',
+  target: 'Target',
+  'whole-foods': 'Whole Foods',
+  costco: 'Costco',
+  sprouts: 'Sprouts',
+  local: 'My local grocery store',
 }
 
-export function OnboardingScreen({
-  onChange,
-  onEnter,
-}: {
-  onChange: (patch: Partial<Profile>) => void
-  onEnter: () => void
-}) {
-  const [bubbles, setBubbles] = useState<Bubble[]>([])
-  const [progress, setProgress] = useState(0)
-  const [listening, setListening] = useState(false)
-  const [live, setLive] = useState('')
-  const [thinking, setThinking] = useState(false)
-  const [busy, setBusy] = useState(true)
-  const [done, setDone] = useState(false)
-  const [typing, setTyping] = useState(false)
-  const [draft, setDraft] = useState('')
-  const [micNote, setMicNote] = useState('')
-  const indexRef = useRef(0)
-  const probedRef = useRef(false)
-  const heardRef = useRef('')
-  const recRef = useRef<SpeechRec | null>(null)
-  const endRef = useRef<HTMLDivElement>(null)
-  const timers = useRef<number[]>([])
+export function OnboardingScreen({ onEnter }: { onEnter: (profile: Profile) => void }) {
+  const [step, setStep] = useState(0)
+  const [name, setName] = useState('')
+  const [loves, setLoves] = useState<LoveId[]>([])
+  const [support, setSupport] = useState<SupportId[]>([])
+  const [supportNote, setSupportNote] = useState('')
+  const [diets, setDiets] = useState<DietChoice[]>([])
+  const [past, setPast] = useState<PastChoice | ''>('')
+  const [sources, setSources] = useState<MealSources>({ home: 1, delivery: 1, out: 1, prep: 1 })
+  const [cook, setCook] = useState<CookFeel | ''>('')
+  const [prep, setPrep] = useState<PrepHabit | ''>('')
+  const [shopFreq, setShopFreq] = useState<ShopFrequency | ''>('')
+  const [stores, setStores] = useState<StoreChoice[]>([])
+  const [storeNote, setStoreNote] = useState('')
+  const [groceryBudget, setGroceryBudget] = useState(50)
+  const [eatingOutBudget, setEatingOutBudget] = useState(40)
 
-  function later(fn: () => void, ms: number) {
-    const id = window.setTimeout(fn, ms)
-    timers.current.push(id)
-  }
+  const id = STEPS[step]
+  const ready = canContinue(id, { name, loves, support, diets, past, cook, prep, shopFreq, stores, storeNote })
 
   useEffect(() => {
-    setBubbles([{ id: uid(), from: 'yami', text: 'Welcome. I love to get to know you.' }])
-    later(() => {
-      setBubbles((current) => [...current, { id: uid(), from: 'yami', text: QUESTIONS[0].ask }])
-      setBusy(false)
-    }, 900)
-    return () => {
-      timers.current.forEach((id) => window.clearTimeout(id))
-      recRef.current?.stop()
-    }
-  }, [])
+    document.querySelector('.survey .screen-body')?.scrollTo({ top: 0 })
+  }, [step])
 
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ block: 'end' })
-  }, [bubbles, live, thinking, listening])
-
-  function speak(text: string, voice: boolean) {
-    if (busy || done) return
-    stopMic()
-    setTyping(false)
-    setDraft('')
-    setMicNote('')
-    setBusy(true)
-    setBubbles((current) => [...current, { id: uid(), from: 'you', text, voice }])
-    setThinking(true)
-
-    const question = QUESTIONS[indexRef.current]
-    const heard = hear(question.id, text, probedRef.current)
-    later(() => {
-      setThinking(false)
-      if (!heard.understood) {
-        probedRef.current = true
-        setBubbles((current) => [...current, { id: uid(), from: 'yami', text: question.probe }])
-        setBusy(false)
-        return
-      }
-      onChange(heard.patch)
-      probedRef.current = false
-      const next = indexRef.current + 1
-      indexRef.current = next
-      setProgress(next / QUESTIONS.length)
-      setBubbles((current) => [...current, { id: uid(), from: 'yami', text: heard.reflection }])
-      later(() => {
-        if (next >= QUESTIONS.length) {
-          setBubbles((current) => [
-            ...current,
-            {
-              id: uid(),
-              from: 'yami',
-              text: "That's plenty for now. Your home screen, the ideas I offer, your grocery list, and the pace of tracking will follow this conversation.",
-            },
-          ])
-          setDone(true)
-        } else {
-          setBubbles((current) => [...current, { id: uid(), from: 'yami', text: QUESTIONS[next].ask }])
-        }
-        setBusy(false)
-      }, 700)
-    }, 650)
-  }
-
-  function skip() {
-    if (busy || done) return
-    stopMic()
-    probedRef.current = false
-    setBusy(true)
-    setBubbles((current) => [...current, { id: uid(), from: 'you', text: 'Skip for now' }])
-    const next = indexRef.current + 1
-    indexRef.current = next
-    setProgress(next / QUESTIONS.length)
-    later(() => {
-      setBubbles((current) => [...current, { id: uid(), from: 'yami', text: 'We can leave that for later.' }])
-      later(() => {
-        if (next >= QUESTIONS.length) {
-          setBubbles((current) => [
-            ...current,
-            {
-              id: uid(),
-              from: 'yami',
-              text: "That's plenty for now. Your home screen, the ideas I offer, your grocery list, and the pace of tracking will follow what you did share.",
-            },
-          ])
-          setDone(true)
-        } else {
-          setBubbles((current) => [...current, { id: uid(), from: 'yami', text: QUESTIONS[next].ask }])
-        }
-        setBusy(false)
-      }, 500)
-    }, 400)
-  }
-
-  function stopMic() {
-    recRef.current?.stop()
-    recRef.current = null
-    setListening(false)
-    setLive('')
-    heardRef.current = ''
-  }
-
-  function toggleMic() {
-    if (busy || done) return
-    if (listening) {
-      recRef.current?.stop()
+  function next() {
+    if (!ready) return
+    if (id === 'thanks') {
+      onEnter(buildProfile({ name, loves, support, supportNote, diets, past, sources, cook, prep, shopFreq, stores, storeNote, groceryBudget, eatingOutBudget }))
       return
     }
-    const Ctor = window.SpeechRecognition ?? window.webkitSpeechRecognition
-    if (!Ctor) {
-      setMicNote("This browser can't transcribe. Type your answer, and I'll treat it as what you said.")
-      setTyping(true)
-      return
-    }
-    const rec = new Ctor()
-    rec.continuous = true
-    rec.interimResults = true
-    rec.lang = 'en-US'
-    rec.onresult = (event) => {
-      let text = ''
-      for (let i = 0; i < event.results.length; i += 1) text += event.results[i][0].transcript
-      heardRef.current = text
-      setLive(text)
-    }
-    rec.onerror = () => {
-      setListening(false)
-      setMicNote("I didn't catch that. Try once more, or type it.")
-      setTyping(true)
-    }
-    rec.onend = () => {
-      const text = heardRef.current.trim()
-      setListening(false)
-      setLive('')
-      heardRef.current = ''
-      recRef.current = null
-      if (text) speak(text, true)
-      else setMicNote('Tap again when you want to answer.')
-    }
-    recRef.current = rec
-    setMicNote('')
-    setTyping(false)
-    setListening(true)
-    try {
-      rec.start()
-    } catch {
-      setListening(false)
-      setMicNote("I can't use the mic here. Type this one, and I'll listen to the words.")
-      setTyping(true)
-    }
+    setStep((current) => current + 1)
   }
-
-  const footer = done ? (
-    <button type="button" className="btn-primary" onClick={onEnter}>
-      Enter Yami
-    </button>
-  ) : (
-    <div className="chat-compose">
-      {typing ? (
-        <form
-          className="chat-type"
-          onSubmit={(event) => {
-            event.preventDefault()
-            if (draft.trim()) speak(draft.trim(), false)
-          }}
-        >
-          <input
-            className="field"
-            value={draft}
-            placeholder="Say it in words"
-            maxLength={240}
-            onChange={(event) => setDraft(event.target.value)}
-          />
-          <button type="submit" className="chip selected" disabled={!draft.trim() || busy}>
-            Send
-          </button>
-        </form>
-      ) : null}
-      <button
-        type="button"
-        className={listening ? 'mic-button listening' : 'mic-button'}
-        onClick={toggleMic}
-        disabled={busy}
-        aria-pressed={listening}
-        aria-label={listening ? 'Stop and send your answer' : 'Answer with your voice'}
-      >
-        <MicIcon />
-      </button>
-      <p className="mic-hint">{listening ? 'Listening. Tap when you are done.' : 'Tap and answer out loud.'}</p>
-      {micNote ? <p className="note">{micNote}</p> : null}
-      <div className="chat-quiet">
-        <button type="button" className="text-btn" onClick={() => setTyping((open) => !open)} disabled={busy || listening}>
-          {typing ? 'Back to voice' : 'Type instead'}
-        </button>
-        <button type="button" className="text-btn" onClick={skip} disabled={busy || listening}>
-          Skip for now
-        </button>
-      </div>
-      <p className="safety chat-safety">A conversation to get to know you. Not therapy, and not medical advice.</p>
-    </div>
-  )
 
   return (
-    <Screen className="intake" progress={done ? 1 : progress} corner={<Yami pose="rest" className="yami-corner yami-float" />} footer={footer}>
-      <div className="chat-log" aria-live="polite">
-        {bubbles.map((bubble) => (
-          <div key={bubble.id} className={bubble.from === 'yami' ? 'bubble-row yami' : 'bubble-row you'}>
-            {bubble.from === 'yami' ? <Yami pose="rest" className="yami-tiny" /> : null}
-            <p className="bubble">
-              {bubble.text}
-              {bubble.voice ? <span className="bubble-meta">Voice</span> : null}
-            </p>
-          </div>
-        ))}
-        {listening ? (
-          <div className="bubble-row you">
-            <p className="bubble live">{live.trim() || 'Listening…'}</p>
-          </div>
-        ) : null}
-        {thinking ? (
-          <div className="bubble-row yami">
-            <Yami pose="rest" className="yami-tiny" />
-            <p className="bubble thinking" aria-label="Yami is thinking">
-              <span />
-              <span />
-              <span />
-            </p>
-          </div>
-        ) : null}
-        <div ref={endRef} />
-      </div>
+    <Screen
+      className="survey"
+      progress={step / (STEPS.length - 1)}
+      onBack={step > 0 ? () => setStep((current) => current - 1) : undefined}
+      footer={
+        <PrimaryButton onClick={next} disabled={!ready}>
+          {id === 'thanks' ? "Let's begin" : 'Continue'}
+        </PrimaryButton>
+      }
+    >
+      {id === 'name' && (
+        <Question title="What's your name?">
+          <input
+            className="zoe-field"
+            value={name}
+            placeholder="Your name"
+            maxLength={40}
+            autoComplete="given-name"
+            onChange={(event) => setName(event.target.value)}
+          />
+        </Question>
+      )}
+
+      {id === 'loves' && (
+        <Question title="What would you love more of right now?" hint="Pick up to two">
+          <Choices
+            options={LOVES}
+            selected={loves}
+            onToggle={(choice) => setLoves((current) => toggleLimited(current, choice, 2))}
+          />
+        </Question>
+      )}
+
+      {id === 'support' && (
+        <Question title="Where do you need the most support right now?" hint="Pick up to two">
+          <Choices
+            options={SUPPORT}
+            selected={support}
+            onToggle={(choice) => setSupport((current) => toggleLimited(current, choice, 2))}
+          />
+          <label className="zoe-note">
+            Anything else you'd like us to know?
+            <textarea
+              className="zoe-field"
+              rows={3}
+              maxLength={200}
+              placeholder="Optional"
+              value={supportNote}
+              onChange={(event) => setSupportNote(event.target.value)}
+            />
+          </label>
+        </Question>
+      )}
+
+      {id === 'diet' && (
+        <Question title="How do you like to eat?" hint="Pick any">
+          <Choices options={DIETS} selected={diets} onToggle={(choice) => setDiets((current) => toggleDiet(current, choice))} />
+        </Question>
+      )}
+
+      {id === 'past' && (
+        <Question title="Have you tried a food app before?">
+          <Choices options={PAST} selected={past ? [past] : []} onToggle={setPast} />
+        </Question>
+      )}
+
+      {id === 'hello' && (
+        <div className="zoe-meet">
+          <p className="zoe-bubble">It's nice to meet you, {name.trim()}!</p>
+          <Yami mood="awake" className="yami-lg" />
+        </div>
+      )}
+
+      {id === 'sources' && (
+        <Question title="Where do most of your meals come from?">
+          <Scale label="Cooking at home" value={sources.home} onChange={(value) => setSources({ ...sources, home: value })} />
+          <Scale label="Ordering delivery" value={sources.delivery} onChange={(value) => setSources({ ...sources, delivery: value })} />
+          <Scale label="Dining hall or eating out" value={sources.out} onChange={(value) => setSources({ ...sources, out: value })} />
+          <Scale label="Meal prep" value={sources.prep} onChange={(value) => setSources({ ...sources, prep: value })} />
+        </Question>
+      )}
+
+      {id === 'cook' && (
+        <Question title="How do you feel about cooking?">
+          <Choices options={COOK} selected={cook ? [cook] : []} onToggle={setCook} />
+        </Question>
+      )}
+
+      {id === 'prep' && (
+        <Question title="Do you meal prep?">
+          <Choices options={PREP} selected={prep ? [prep] : []} onToggle={setPrep} />
+        </Question>
+      )}
+
+      {id === 'shop' && (
+        <Question title="How often do you shop for groceries?">
+          <Choices options={SHOP} selected={shopFreq ? [shopFreq] : []} onToggle={setShopFreq} />
+        </Question>
+      )}
+
+      {id === 'stores' && (
+        <Question title="Where do you like to shop?" hint="Pick any">
+          <Choices
+            options={STORES}
+            selected={stores}
+            onToggle={(choice) => setStores((current) => (current.includes(choice) ? current.filter((item) => item !== choice) : [...current, choice]))}
+          />
+          <label className="zoe-note">
+            Another store we should know about?
+            <input
+              className="zoe-field"
+              value={storeNote}
+              maxLength={60}
+              placeholder="Optional"
+              onChange={(event) => setStoreNote(event.target.value)}
+            />
+          </label>
+        </Question>
+      )}
+
+      {id === 'budget' && (
+        <Question title="What feels comfortable to spend on food each week?">
+          <MoneyScale label="Groceries" value={groceryBudget} onChange={setGroceryBudget} />
+          <MoneyScale label="Eating out and delivery" value={eatingOutBudget} onChange={setEatingOutBudget} />
+        </Question>
+      )}
+
+      {id === 'thanks' && (
+        <div className="zoe-meet">
+          <p className="zoe-bubble">Thank you, {name.trim()}. We've got you from here.</p>
+          <Yami mood="awake" className="yami-lg" />
+        </div>
+      )}
     </Screen>
   )
 }
 
-function MicIcon() {
+function Question({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (
-    <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M6 11 a6 6 0 0 0 12 0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M12 17 v3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
+    <div className="zoe-question">
+      <h1>{title}</h1>
+      {hint ? <p className="zoe-hint">{hint}</p> : null}
+      {children}
+    </div>
   )
+}
+
+function Choices<T extends string>({
+  options,
+  selected,
+  onToggle,
+}: {
+  options: { id: T; label: string }[]
+  selected: T[]
+  onToggle: (id: T) => void
+}) {
+  return (
+    <div className="zoe-options">
+      {options.map((option) => {
+        const on = selected.includes(option.id)
+        return (
+          <button key={option.id} type="button" className={on ? 'zoe-option on' : 'zoe-option'} aria-pressed={on} onClick={() => onToggle(option.id)}>
+            {option.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function Scale({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
+  const pct = value / 3
+  return (
+    <div className="zoe-scale">
+      <p>{label}</p>
+      <div className="zoe-rail">
+        <span className="zoe-bubble" style={{ left: `calc(${pct} * (100% - 28px) + 14px)` }}>
+          {SOURCE_LABEL[value]}
+        </span>
+        <input
+          className="zoe-range"
+          style={{ ['--pct' as string]: `${pct * 100}%` }}
+          type="range"
+          min={0}
+          max={3}
+          step={1}
+          value={value}
+          aria-valuetext={SOURCE_LABEL[value]}
+          aria-label={label}
+          onChange={(event) => onChange(Number(event.target.value))}
+        />
+      </div>
+      <div className="zoe-ends">
+        <span>Rarely</span>
+        <span>Most days</span>
+      </div>
+    </div>
+  )
+}
+
+function MoneyScale({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
+  const pct = value / 150
+  const bubble = value >= 150 ? '$150+ a week' : `$${value} a week`
+  return (
+    <div className="zoe-scale">
+      <p>{label}</p>
+      <div className="zoe-rail">
+        <span className={pct < 0.18 ? 'zoe-bubble start' : pct > 0.82 ? 'zoe-bubble end' : 'zoe-bubble'} style={{ left: `calc(${pct} * (100% - 28px) + 14px)` }}>
+          {bubble}
+        </span>
+        <input
+          className="zoe-range"
+          style={{ ['--pct' as string]: `${pct * 100}%` }}
+          type="range"
+          min={0}
+          max={150}
+          step={10}
+          value={value}
+          aria-valuetext={bubble}
+          aria-label={label}
+          onChange={(event) => onChange(Number(event.target.value))}
+        />
+      </div>
+      <div className="zoe-ends">
+        <span>$0</span>
+        <span>$150+</span>
+      </div>
+    </div>
+  )
+}
+
+function toggleLimited<T>(current: T[], id: T, max: number) {
+  if (current.includes(id)) return current.filter((item) => item !== id)
+  if (current.length >= max) return current
+  return [...current, id]
+}
+
+function toggleDiet(current: DietChoice[], id: DietChoice): DietChoice[] {
+  if (id === 'none') return current.includes('none') ? [] : ['none']
+  const rest = current.filter((item) => item !== 'none')
+  return rest.includes(id) ? rest.filter((item) => item !== id) : [...rest, id]
+}
+
+function canContinue(
+  id: StepId,
+  answers: {
+    name: string
+    loves: LoveId[]
+    support: SupportId[]
+    diets: DietChoice[]
+    past: PastChoice | ''
+    cook: CookFeel | ''
+    prep: PrepHabit | ''
+    shopFreq: ShopFrequency | ''
+    stores: StoreChoice[]
+    storeNote: string
+  },
+) {
+  if (id === 'name') return answers.name.trim().length > 0
+  if (id === 'loves') return answers.loves.length > 0
+  if (id === 'support') return answers.support.length > 0
+  if (id === 'diet') return answers.diets.length > 0
+  if (id === 'past') return answers.past !== ''
+  if (id === 'cook') return answers.cook !== ''
+  if (id === 'prep') return answers.prep !== ''
+  if (id === 'shop') return answers.shopFreq !== ''
+  if (id === 'stores') return answers.stores.length > 0 || answers.storeNote.trim().length > 0
+  return true
+}
+
+function buildProfile(answers: {
+  name: string
+  loves: LoveId[]
+  support: SupportId[]
+  supportNote: string
+  diets: DietChoice[]
+  past: PastChoice | ''
+  sources: MealSources
+  cook: CookFeel | ''
+  prep: PrepHabit | ''
+  shopFreq: ShopFrequency | ''
+  stores: StoreChoice[]
+  storeNote: string
+  groceryBudget: number
+  eatingOutBudget: number
+}): Profile {
+  const goals: string[] = []
+  const widgets: WidgetId[] = []
+  if (answers.loves.includes('energy')) {
+    goals.push('energy')
+    widgets.push('energy')
+  }
+  if (answers.loves.includes('protein') || answers.loves.includes('strength')) {
+    if (!widgets.includes('protein')) widgets.push('protein')
+  }
+  if (answers.loves.includes('strength')) goals.push('muscle')
+  if (answers.loves.includes('blood-sugar')) goals.push('blood-sugar')
+  if (answers.loves.includes('peace')) goals.push('feel-better')
+  if (answers.loves.includes('eating-well')) goals.push('aware')
+  if (answers.loves.includes('lighter')) goals.push('lighter')
+  if (answers.support.includes('consistent') && !widgets.includes('consistency')) widgets.push('consistency')
+
+  const dietIds: string[] = answers.diets.filter((item) => item !== 'none')
+  const notes: string[] = []
+  if (dietIds.includes('gluten-free')) notes.push('gluten')
+  if (dietIds.includes('dairy-free')) notes.push('dairy')
+  if ((answers.sources.delivery >= 3 || answers.sources.out >= 3) && !dietIds.includes('eating-out')) dietIds.push('eating-out')
+
+  const physical = answers.stores.filter((item) => item !== 'instacart')
+  const online = answers.stores.includes('instacart')
+  const note = answers.storeNote.trim()
+  const shopMode: Profile['shopMode'] = online && (physical.length > 0 || note) ? 'both' : online ? 'online' : 'in-store'
+
+  return {
+    ...emptyProfile,
+    name: answers.name.trim(),
+    goals,
+    goalCustom: answers.supportNote.trim(),
+    loves: answers.loves,
+    support: answers.support,
+    supportNote: answers.supportNote.trim(),
+    diets: dietIds,
+    allergyNote: notes.join(' '),
+    pastApps: answers.past ? [answers.past] : [],
+    budget: String(answers.groceryBudget),
+    budgetMinded: answers.support.includes('budget'),
+    shopMode,
+    shopStore: physical[0] ? STORE_LABEL[physical[0]] : '',
+    shopStoreCustom: physical.length === 0 ? note : '',
+    shopStoreNote: physical.length > 0 ? note : '',
+    shopStores: answers.stores,
+    shopFrequency: answers.shopFreq,
+    cookFeel: answers.cook,
+    mealPrep: answers.prep,
+    mealSources: answers.sources,
+    groceryBudget: answers.groceryBudget,
+    eatingOutBudget: answers.eatingOutBudget,
+    widgets,
+  }
 }

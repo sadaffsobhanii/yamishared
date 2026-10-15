@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Yami } from '../components/Yami'
+import { moodAt } from '../data/rhythm'
 import { PrimaryButton, Screen } from '../components/ui'
 
 export function GreetingScreen({ onStart }: { onStart: () => void }) {
@@ -22,7 +23,7 @@ export function GreetingScreen({ onStart }: { onStart: () => void }) {
     >
       <div className="hero">
         {leaving ? <div className="swirl" aria-hidden="true" /> : null}
-        <Yami pose="greeting" className="yami-lg yami-float" />
+        <Yami mood={moodAt(new Date())} className="yami-lg yami-float" />
         <h1>Hi there! Welcome to Yami.</h1>
         <p className="sub">
           Yami is built around your life — not one strict diet. We'll look for habits that can last, not a perfect plate.

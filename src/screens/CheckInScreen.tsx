@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react'
 import { Yami } from '../components/Yami'
+import { moodAt } from '../data/rhythm'
+import { useClock } from '../useClock'
 import { PrimaryButton, Screen } from '../components/ui'
 
 const CHIPS = ['I felt more energized', 'Tracking felt easy', 'I got busy', 'I need simpler ideas', 'I want to change my focus']
@@ -13,6 +15,7 @@ export function CheckInScreen({
   onDone: (answers: string[]) => void
   onBack: () => void
 }) {
+  const mood = moodAt(useClock())
   const [answers, setAnswers] = useState<string[]>([])
   const [recording, setRecording] = useState(false)
   const [heard, setHeard] = useState(false)
@@ -49,7 +52,7 @@ export function CheckInScreen({
     return (
       <Screen className="checkin" onBack={onBack} footer={<PrimaryButton onClick={onBack}>Back home</PrimaryButton>}>
         <div className="hero">
-          <Yami pose="rest" className="yami-md yami-float" />
+          <Yami mood={mood} className="yami-md yami-float" />
           <h1>Thanks for checking in.</h1>
           <p className="sub">Next week, we'll keep things simple.</p>
         </div>
@@ -68,7 +71,7 @@ export function CheckInScreen({
       }
     >
       <div className="checkin-top">
-        <Yami pose="rest" className="yami-sm yami-float" />
+        <Yami mood={mood} className="yami-sm yami-float" />
         <h1>Time for your Yami check-in</h1>
         <p className="sub">Tell Yami how this week felt. This is optional, and short.</p>
       </div>

@@ -33,6 +33,7 @@ const GOAL_LABEL: Record<string, string> = {
   'blood-sugar': 'Blood sugar',
   'feel-better': 'Around food',
   aware: 'Awareness',
+  lighter: 'Feeling lighter',
 }
 
 const FIBER = /spinach|salad|green|berry|apple|banana|oat|bean|lentil|chickpea|edamame/i

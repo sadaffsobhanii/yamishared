@@ -110,7 +110,7 @@ export function recommendFor(analysis: Analysis, profile: Profile): MealIdea {
   const feelBetter = profile.goals.includes('feel-better')
   const awareOnly = profile.goals.includes('aware') && profile.goals.length === 1 && !profile.goalCustom.trim()
   const budget = Number(profile.budget)
-  const tight = profile.studentBudget || (Number.isFinite(budget) && budget > 0 && budget <= 80)
+  const tight = profile.budgetMinded || profile.studentBudget || (Number.isFinite(budget) && budget > 0 && budget <= 80)
 
   let swapItem = dairyFree ? 'Firm tofu' : 'Greek yogurt'
   let recommendation = dairyFree
