@@ -4,6 +4,7 @@ import { AskBar } from './Chef'
 import { SECTION, cartPrice, dollars, instacartLink, shopStore, withCartItem } from './fuel'
 import { FOODS, advise, scoreColor, scoreLabel } from './model'
 import { labelPhoto } from './scan'
+import { nutritionFor, sourceLink, type Nutrition } from './usda'
 import { useYami } from './store'
 
 export function Log() {
@@ -11,7 +12,29 @@ export function Log() {
   const { P, log, setLog, meals, setMeals, setList, go, toast, setChat, setCartOpen, setCartMode, recs, setRecs } = store
   const [why, setWhy] = useState(false)
   const [picked, setPicked] = useState<Record<string, 'store' | 'online'>>({})
-  const result = log?.step === 'result' ? advise(P, log.items) : null
+  const [usda, setUsda] = useState<Record<string, Nutrition | null>>({})
+  const [usdaOpen, setUsdaOpen] = useState(false)
+  const itemsKey = log?.step === 'result' ? log.items.join('|') : ''
+  const usdaReady = log?.step === 'result' ? log.items.every(item => item in usda) : false
+  const measured = Object.fromEntries(
+    Object.entries(usda).flatMap(([item, n]) => (n ? [[item, { p: n.protein, f: n.fiber, c: n.calories }]] : [])),
+  )
+  const result = log?.step === 'result' ? advise(P, log.items, measured) : null
+
+  // Once the foods are confirmed, look each one up in USDA FoodData Central.
+  useEffect(() => {
+    if (!itemsKey) return
+    let cancel = false
+    const items = itemsKey.split('|')
+    setUsda({})
+    setUsdaOpen(false)
+    items.forEach(item => {
+      void nutritionFor(item).then(found => {
+        if (!cancel) setUsda(current => ({ ...current, [item]: found }))
+      })
+    })
+    return () => { cancel = true }
+  }, [itemsKey])
 
   useEffect(() => {
     if (!log) {
@@ -176,7 +199,7 @@ export function Log() {
   if (!result) return null
   function finish() {
     const day = new Date().toLocaleDateString('en-US', { weekday: 'short' })
-    setMeals([...meals, { n: log!.name, p: result!.p, veg: result!.hasVeg, score: result!.score, k: log!.k, items: log!.items.slice() }])
+    setMeals([...meals, { n: log!.name, p: result!.p, f: result!.f, c: result!.c, veg: result!.hasVeg, score: result!.score, k: log!.k, items: log!.items.slice() }])
     setRecs([{
       meal: log!.name,
       k: log!.k,
@@ -204,6 +227,43 @@ export function Log() {
       <div className="why" hidden={!why}>{result.why}</div>
       <div className="w" style={{ marginTop: 16, display: 'flex', gap: 10, alignItems: 'center' }}>
         <span className="small" style={{ flex: 1 }}>{log.items.length} foods · about {result.p}g protein · {result.f}g fiber{P.show.calories ? ` · ${result.c} cal` : ''}</span>
+      </div>
+      <div className="w" style={{ marginTop: 8 }}>
+        <span className="small">
+          {usdaReady
+            ? Object.values(usda).some(Boolean)
+              ? 'Nutrition from USDA FoodData Central, for a typical serving of each food.'
+              : "USDA didn't have a match, so these are Yami's estimates."
+            : 'Checking USDA FoodData Central…'}
+        </span>
+        {usdaReady && Object.values(usda).some(Boolean) && (
+          <>
+            <button className="ghost" type="button" aria-expanded={usdaOpen} onClick={() => setUsdaOpen(open => !open)} style={{ display: 'block' }}>
+              {usdaOpen ? 'Hide the breakdown' : 'See the breakdown'}
+            </button>
+            {usdaOpen && (
+              <ul className="small" style={{ margin: '6px 0 0', paddingLeft: 18, lineHeight: 1.6 }}>
+                {log.items.map(item => {
+                  const n = usda[item]
+                  return (
+                    <li key={item}>
+                      {n ? (
+                        <>
+                          <strong>{item}</strong> ({n.grams} g):{' '}
+                          {n.protein} g protein · {n.fiber} g fiber · {n.carbs} g carbs · {n.fat} g fat
+                          {P.show.calories ? ` · ${n.calories} cal` : ''}.{' '}
+                          <a href={sourceLink(n)} target="_blank" rel="noopener">USDA: {n.match}</a>
+                        </>
+                      ) : (
+                        <><strong>{item}</strong>: no USDA match, Yami's estimate used.</>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </>
+        )}
       </div>
       {result.offers.map(offer => {
         const food = offer.item.toLowerCase()
