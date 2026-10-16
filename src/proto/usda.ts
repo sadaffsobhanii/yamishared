@@ -1,7 +1,10 @@
 // Nutrition for the foods Yami spots in a photo, from USDA FoodData Central.
 // https://fdc.nal.usda.gov/api-guide — free key from https://api.data.gov/signup (DEMO_KEY works for light testing).
 
+export type Per100 = { calories: number; protein: number; fat: number; carbs: number; fiber: number; sugar: number; sodium: number }
+
 export type Nutrition = {
+  source: 'USDA' | 'Open Food Facts'
   name: string
   match: string
   fdcId: number
@@ -14,6 +17,8 @@ export type Nutrition = {
   fiber: number
   sugar: number
   sodium: number
+  per100: Per100
+  link: string
 }
 
 type FdcNutrient = { nutrientNumber: string; value: number }
@@ -43,6 +48,7 @@ const N = { calories: '208', protein: '203', fat: '204', carbs: '205', fiber: '2
 const DISHES = /\b(salad|sauce|soup|sandwich|dip|chips|with|and|baby|cake|pie|casserole|stew|burrito|taco)\b/
 
 const memory = new Map<string, Promise<Nutrition | null>>()
+const CACHE_VERSION = 2
 
 function words(text: string) {
   return text
@@ -54,13 +60,15 @@ function words(text: string) {
 }
 
 // Prefer the plain food ("Black beans, NFS") over dishes that contain it ("Black bean salad").
+// The main food word must match; extra detail words ("cherry", "roasted") help but aren't required.
 function rank(query: string, food: FdcFood) {
   const want = words(query)
   const desc = food.description.toLowerCase()
   const all = words(desc)
-  if (!want.every(word => all.includes(word))) return -1
+  const hits = want.filter(word => all.includes(word)).length
+  if (!want.length || !all.includes(want[0]) || hits / want.length < 0.5) return -1
   const first = words(desc.split(',')[0])
-  let score = 100
+  let score = (100 * hits) / want.length
   if (/,\s*nfs\b/.test(desc)) score += 40
   if (first.join(' ') === want.join(' ')) score += 30
   if (DISHES.test(desc.split(',')[0]) && !want.some(word => DISHES.test(word))) score -= 50
@@ -80,7 +88,7 @@ function portion(food: FdcFood) {
 
 function readCache(key: string): Nutrition | null | undefined {
   try {
-    const raw = localStorage.getItem(`usda:${key}`)
+    const raw = localStorage.getItem(`usda${CACHE_VERSION}:${key}`)
     return raw ? (JSON.parse(raw) as Nutrition | null) : undefined
   } catch {
     return undefined
@@ -89,7 +97,7 @@ function readCache(key: string): Nutrition | null | undefined {
 
 function writeCache(key: string, value: Nutrition | null) {
   try {
-    localStorage.setItem(`usda:${key}`, JSON.stringify(value))
+    localStorage.setItem(`usda${CACHE_VERSION}:${key}`, JSON.stringify(value))
   } catch {
     // Private mode or full storage: the in-memory cache still covers this session.
   }
@@ -106,33 +114,57 @@ async function search(query: string, dataType: string) {
 async function fetchNutrition(name: string): Promise<Nutrition | null> {
   const query = ALIASES[name] || name
   let foods = await search(query, 'Survey (FNDDS)')
-  if (!foods.some(food => rank(query, food) >= 0)) foods = await search(query, 'SR Legacy,Foundation')
+  // FNDDS has the serving sizes; only reach for SR Legacy when FNDDS can't match every word.
+  const full = foods.some(food => words(food.description).filter(word => words(query).includes(word)).length === words(query).length)
+  if (!full) foods = [...foods, ...(await search(query, 'SR Legacy,Foundation'))]
   const best = foods
     .map(food => ({ food, score: rank(query, food) }))
     .filter(entry => entry.score >= 0)
     .sort((a, b) => b.score - a.score)[0]?.food
   if (!best) return null
   const { grams, label } = portion(best)
-  const per100 = (number: string) => best.foodNutrients.find(n => n.nutrientNumber === number)?.value ?? 0
-  const amount = (number: string, digits = 0) => {
-    const value = (per100(number) * grams) / 100
-    const scale = 10 ** digits
-    return Math.round(value * scale) / scale
+  const value = (number: string) => best.foodNutrients.find(n => n.nutrientNumber === number)?.value ?? 0
+  const per100: Per100 = {
+    calories: value(N.calories),
+    protein: value(N.protein),
+    fat: value(N.fat),
+    carbs: value(N.carbs),
+    fiber: value(N.fiber),
+    sugar: value(N.sugar),
+    sodium: value(N.sodium),
   }
   return {
+    ...atGrams(per100, grams),
+    source: 'USDA',
     name,
     match: best.description,
     fdcId: best.fdcId,
-    grams: Math.round(grams),
     portion: label,
-    calories: amount(N.calories),
-    protein: amount(N.protein, 1),
-    fat: amount(N.fat, 1),
-    carbs: amount(N.carbs, 1),
-    fiber: amount(N.fiber, 1),
-    sugar: amount(N.sugar, 1),
-    sodium: amount(N.sodium),
+    per100,
+    link: `https://fdc.nal.usda.gov/food-details/${best.fdcId}/nutrients`,
   }
+}
+
+const round = (value: number, digits = 0) => Math.round(value * 10 ** digits) / 10 ** digits
+
+// The amounts for a given weight of food, from its per-100 g values.
+export function atGrams(per100: Per100, grams: number) {
+  const k = grams / 100
+  return {
+    grams: Math.round(grams),
+    calories: round(per100.calories * k),
+    protein: round(per100.protein * k, 1),
+    fat: round(per100.fat * k, 1),
+    carbs: round(per100.carbs * k, 1),
+    fiber: round(per100.fiber * k, 1),
+    sugar: round(per100.sugar * k, 1),
+    sodium: round(per100.sodium * k),
+  }
+}
+
+// Same food, resized to the amount actually on the plate.
+export function resize(n: Nutrition, grams: number): Nutrition {
+  return { ...n, ...atGrams(n.per100, grams) }
 }
 
 // Looks up one food, remembering answers so the same food is never fetched twice.
@@ -158,5 +190,5 @@ export function nutritionFor(name: string): Promise<Nutrition | null> {
 }
 
 export function sourceLink(n: Nutrition) {
-  return `https://fdc.nal.usda.gov/food-details/${n.fdcId}/nutrients`
+  return n.link
 }
