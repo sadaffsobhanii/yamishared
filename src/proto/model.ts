@@ -34,10 +34,11 @@ export type Profile = {
   sleepGoal: string
 }
 
-export type LoggedMeal = { n: string; p: number; veg: boolean; score?: number; k?: string | null; items?: string[] }
+export type LoggedMeal = { n: string; p: number; veg: boolean; score?: number; k?: string | null; items?: string[]; f?: number; c?: number; foods?: Record<string, Food> }
 export type ListItem = { n: string; done?: boolean; from?: string; store?: string; section?: string; price?: number }
 export type Rec = { meal: string; k?: string | null; bg?: string; img?: string | null; tip: string; add: string | null; store?: string; section?: string; day: string }
 export type SleepLog = { h: number; feel: string; logged: boolean; touched?: boolean }
+export type PortionSize = 'small' | 'regular' | 'large'
 export type LogDraft = {
   step: 'start' | 'analyzing' | 'confirm' | 'result'
   img: string | null
@@ -46,6 +47,16 @@ export type LogDraft = {
   items: string[]
   name: string
   added?: boolean
+  // Camera details, keyed by food name: where the meal is from, how much is on the plate, and what Yami first called each food.
+  place?: string | null
+  mode?: 'photo' | 'barcode'
+  extraImg?: string | null
+  by?: 'claude' | 'device'
+  sizes?: Record<string, PortionSize>
+  spotted?: Record<string, { usda?: string; grams?: number; size?: PortionSize; kind?: string; whole?: boolean }>
+  packaged?: Record<string, import('./usda').Nutrition>
+  origin?: Record<string, string>
+  note?: string
 }
 export type OrderDraft = { rest: string; meal: string }
 export type ChatMessage = { role: 'user' | 'assistant'; content: string; added?: boolean }
@@ -269,9 +280,10 @@ export function dayTotals(meals: LoggedMeal[]) {
   let calories = 0
   meals.forEach(meal => {
     const items = meal.items || []
-    items.forEach(name => { fiber += FOODS[name]?.f || 0 })
+    if (meal.f != null) fiber += meal.f
+    else items.forEach(name => { fiber += FOODS[name]?.f || 0 })
     const menu = Object.values(MENUS).flat().find(item => item.n.toLowerCase() === meal.n.toLowerCase())
-    calories += menu ? menu.c : items.length ? plateCalories(items) : Math.round((meal.p || 0) * 8)
+    calories += meal.c != null ? meal.c : menu ? menu.c : items.length ? plateCalories(items) : Math.round((meal.p || 0) * 8)
   })
   return { protein: proteinToday(meals), fiber: Math.round(fiber), calories }
 }
@@ -285,11 +297,26 @@ export function yamiLine(P: Profile, meals: LoggedMeal[]) {
   return `${n} meal${n > 1 ? 's' : ''} logged today. No pressure, no perfect. I'm right here.`
 }
 
-export function advise(P: Profile, items: string[]) {
-  const info = items.map(n => FOODS[n] || { p: 3, f: 1, t: [] as string[] })
-  const p = info.reduce((a, x) => a + x.p, 0)
-  const f = info.reduce((a, x) => a + x.f, 0)
-  const c = plateCalories(items)
+// What a food group means for Yami's tips, for foods that aren't in FOODS (like the ones Claude names from a photo).
+export function foodFromKind(name: string, kind: string, whole = true): Food {
+  const base: Food = { p: 3, f: 1, t: [], whole }
+  if (kind === 'vegetable') return { ...base, f: 2, t: ['veg', 'fiber'], plant: true }
+  if (kind === 'fruit') return { ...base, f: 2, t: ['fruit', 'fiber'], plant: true }
+  if (kind === 'plant protein') return { ...base, p: 8, f: 5, t: ['protein', 'fiber'], plant: true, prot: name }
+  if (kind === 'animal protein') return { ...base, p: 20, f: 0, t: ['protein', 'meat'], prot: name }
+  if (kind === 'dairy') return { ...base, p: 8, f: 0, t: ['protein'], prot: name }
+  if (kind === 'whole grain') return { ...base, p: 4, f: 3, t: ['carb'], carb: 'whole', plant: true }
+  if (kind === 'refined grain') return { ...base, p: 4, f: 1, t: ['carb'], carb: 'refined' }
+  if (kind === 'fat') return { ...base, p: 1, f: 2, t: ['fat'] }
+  return base
+}
+
+// `measured` holds database numbers per food (USDA or a barcode label) when the lookup found them; Yami's own table fills the gaps.
+export function advise(P: Profile, items: string[], measured: Record<string, Partial<Food> & { p: number; f: number; c: number }> = {}) {
+  const info = items.map(n => ({ ...(FOODS[n] || { p: 3, f: 1, t: [] as string[] }), ...(measured[n] || {}) }))
+  const p = Math.round(info.reduce((a, x) => a + x.p, 0))
+  const f = Math.round(info.reduce((a, x) => a + x.f, 0))
+  const c = Math.round(items.reduce((sum, n) => sum + (measured[n]?.c ?? foodCalories(n)), 0))
   const has = (t: string) => info.some(x => x.t.includes(t))
   const hasVeg = has('veg')
   const vegan = P.diet.includes('Vegan')

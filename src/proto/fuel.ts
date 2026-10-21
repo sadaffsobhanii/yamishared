@@ -81,6 +81,11 @@ export function orderItems(name: string) {
   return found.length ? found : [name]
 }
 
+// Foods saved with each logged meal (from a photo or a barcode label) count too, not only the ones in FOODS.
+function foodBook(meals: LoggedMeal[]): Record<string, Food | undefined> {
+  return Object.assign({}, FOODS, ...meals.map(meal => meal.foods || {}))
+}
+
 export type FuelPart = { k: string; label: string; val: number | null; why: string; tip: string }
 
 export function sleepScore(P: Profile, sleep: SleepLog) {
@@ -96,12 +101,13 @@ export function sleepScore(P: Profile, sleep: SleepLog) {
 
 export function fuelToday(P: Profile, meals: LoggedMeal[], sleep: SleepLog) {
   const items = meals.flatMap(meal => meal.items || [])
+  const book = foodBook(meals)
   const blank: Food = { p: 0, f: 0, t: [], whole: true }
-  const info = items.map(name => FOODS[name] || blank)
+  const info = items.map(name => book[name] || blank)
   const has = meals.length > 0
   const mealQuality = has ? Math.round(meals.reduce((sum, meal) => sum + (meal.score || 0), 0) / meals.length) : null
-  const plants = new Set(items.filter(name => FOODS[name]?.plant))
-  const proteins = new Set(items.map(name => FOODS[name]?.prot).filter(Boolean))
+  const plants = new Set(items.filter(name => book[name]?.plant))
+  const proteins = new Set(items.map(name => book[name]?.prot).filter(Boolean))
   const carbs = info.filter(food => food.carb)
   const wholeCarbs = carbs.filter(food => food.carb === 'whole').length
   const wholeFoods = info.filter(food => food.whole !== false).length
@@ -129,9 +135,10 @@ export function weekFuel(P: Profile, meals: LoggedMeal[]) {
   const scored = meals.map(meal => meal.score).filter((value): value is number => value != null)
   const mealsAvg = scored.length ? Math.round(scored.reduce((sum, value) => sum + value, 0) / scored.length) : 0
   const items = meals.flatMap(meal => meal.items || [])
-  const plants = new Set(items.filter(name => FOODS[name]?.plant)).size
+  const book = foodBook(meals)
+  const plants = new Set(items.filter(name => book[name]?.plant)).size
   const proteinG = meals.reduce((sum, meal) => sum + (meal.p || 0), 0)
-  const fiberG = Math.round(items.reduce((sum, name) => sum + (FOODS[name]?.f || 0), 0))
+  const fiberG = Math.round(items.reduce((sum, name) => sum + (book[name]?.f || 0), 0))
   const count = Math.max(1, meals.length)
   const g = goal(P)
   const proteinTarget = g === 'More protein' || g === 'Building strength' ? 30 : 20
@@ -193,14 +200,15 @@ export function weekData(P: Profile, meals: LoggedMeal[], sleep: SleepLog, sampl
 
 export function weekNutrition(meals: LoggedMeal[], sample: boolean) {
   const items = meals.flatMap(meal => meal.items || [])
-  const plants = new Set(items.filter(name => FOODS[name]?.plant))
-  const proteins = new Set(items.map(name => FOODS[name]?.prot).filter(Boolean))
+  const book = foodBook(meals)
+  const plants = new Set(items.filter(name => book[name]?.plant))
+  const proteins = new Set(items.map(name => book[name]?.prot).filter(Boolean))
   const blank: Food = { p: 0, f: 0, t: [], whole: true }
-  const info = items.map(name => FOODS[name] || blank)
+  const info = items.map(name => book[name] || blank)
   const carbs = info.filter(food => food.carb)
   const wholeCarb = carbs.length ? Math.round(100 * carbs.filter(food => food.carb === 'whole').length / carbs.length) : null
   const whole = info.length ? Math.round(100 * info.filter(food => food.whole !== false).length / info.length) : null
-  const fiber = Math.round(items.reduce((sum, name) => sum + (FOODS[name]?.f || 0), 0))
+  const fiber = Math.round(items.reduce((sum, name) => sum + (book[name]?.f || 0), 0))
   return {
     plants: plants.size + (sample ? 14 : 0),
     proteins: proteins.size + (sample ? 4 : 0),

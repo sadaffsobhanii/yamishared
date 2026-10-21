@@ -116,3 +116,8 @@ export async function labelPhoto(src: string) {
   const name = top && top.probability >= 0.12 && !NOT_FOOD.test(top.className.toLowerCase()) ? pretty(top.className) : 'Your meal'
   return { items, name }
 }
+
+// Starts downloading the on-device reader early so the first photo isn't slow.
+export function preloadPhotoReader() {
+  void getNet().catch(() => {})
+}
