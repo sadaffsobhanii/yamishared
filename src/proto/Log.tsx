@@ -10,6 +10,10 @@ import { PLACES, placeLabel } from './places'
 import { preloadPhotoReader } from './scan'
 import { nutritionFor, resize, sourceLink, type Nutrition } from './usda'
 import { useYami } from './store'
+// A real Parkside lunch, imported so it's bundled into the single-file build too.
+import parksidePlate from '../assets/parkside.jpg'
+
+const SAMPLE_ITEMS = ['Chicken rice bowl', 'Kale', 'Grapes', 'Curly fries']
 
 const SIZES: { id: PortionSize; label: string }[] = [
   { id: 'small', label: 'Small' },
@@ -117,6 +121,10 @@ export function Log() {
       }
       try {
         const reading = await readPhoto(photo, log.place ?? null)
+        if (log.k === 'sample' && reading.by === 'device') {
+          done({ items: SAMPLE_ITEMS, name: 'Parkside lunch', place: 'parkside', by: 'device', note: undefined })
+          return
+        }
         const spotted = { ...(log.spotted || {}) }
         const sizes = { ...(log.sizes || {}) }
         const origin = { ...(log.origin || {}) }
@@ -241,11 +249,13 @@ export function Log() {
           className="ghost"
           onClick={() => setLog({
             step: 'analyzing',
-            img: null,
-            k: 'burrito',
+            mode: 'photo',
+            place: 'parkside',
+            img: parksidePlate,
+            k: 'sample',
             bg: '#E7DDF9',
-            items: ['Rice', 'Black beans', 'Salsa'],
-            name: 'Your meal',
+            items: [],
+            name: 'Parkside lunch',
           })}
         >
           Preview with a sample plate
@@ -272,9 +282,13 @@ export function Log() {
       <>
         <div className="eyebrow">Log a meal</div>
         <h2 className="h" style={{ marginBottom: 12 }}>Here's what I see.</h2>
-        <div className="tile" style={{ height: 200, background: log.bg, marginBottom: 14 }}>
-          {log.img ? <img className="photo" src={log.img} alt="Your meal photo" /> : <Emoji k={log.k || 'salad'} size={110} />}
-        </div>
+        {log.img ? (
+          <CameraShot src={log.img} />
+        ) : (
+          <div className="tile" style={{ height: 200, background: log.bg, marginBottom: 14 }}>
+            <Emoji k={log.k || 'salad'} size={110} />
+          </div>
+        )}
         <p className="small" style={{ margin: '0 0 12px' }}>
           {log.img
             ? (log.items.length ? 'Yami labeled this from your photo. Remove or rename anything it got wrong, and set how much was there.' : 'Yami could not pick out the foods. Add what is actually on the plate.')
@@ -508,5 +522,25 @@ export function Log() {
       <div style={{ height: 80 }} />
       <AskBar />
     </>
+  )
+}
+
+// The meal photo, shown small inside a phone-camera viewfinder: grid, focus box, PHOTO label and shutter.
+function CameraShot({ src }: { src: string }) {
+  const line = 'rgba(255,255,255,.28)'
+  return (
+    <div style={{ position: 'relative', width: '62%', margin: '0 auto 14px', background: '#0d0a0a', borderRadius: 18, padding: '9px 9px 38px' }}>
+      <img src={src} alt="Your meal photo" style={{ display: 'block', width: '100%', height: 130, objectFit: 'cover', borderRadius: 10 }} />
+      <span
+        aria-hidden="true"
+        style={{
+          position: 'absolute', inset: '9px 9px 38px', borderRadius: 10,
+          background: `linear-gradient(to right, transparent 33%, ${line} 33% calc(33% + 1px), transparent calc(33% + 1px) 66%, ${line} 66% calc(66% + 1px), transparent calc(66% + 1px)), linear-gradient(to bottom, transparent 33%, ${line} 33% calc(33% + 1px), transparent calc(33% + 1px) 66%, ${line} 66% calc(66% + 1px), transparent calc(66% + 1px))`,
+        }}
+      />
+      <span aria-hidden="true" style={{ position: 'absolute', inset: '28px 36px 58px', border: '1.5px solid rgba(255,255,255,.85)', borderRadius: 4 }} />
+      <span aria-hidden="true" style={{ position: 'absolute', left: 14, bottom: 13, fontSize: 9, fontWeight: 800, lineHeight: 1, letterSpacing: '.12em', color: 'rgba(255,255,255,.75)' }}>PHOTO</span>
+      <span aria-hidden="true" style={{ position: 'absolute', left: '50%', bottom: 7, width: 24, height: 24, marginLeft: -12, borderRadius: '50%', background: '#fff', boxShadow: '0 0 0 2px #0d0a0a, 0 0 0 4px rgba(255,255,255,.9)' }} />
+    </div>
   )
 }
