@@ -124,7 +124,7 @@ export function Boards() {
       n: 'Your meal',
       m: 'From your photos',
       d: 'Recent',
-      bg: '#E7DDF9',
+      bg: '#F7E6E3',
       veg: true,
     }))
     setDeck([...added, ...cards])
@@ -207,7 +207,7 @@ function Swipe({
                   <span className="src">From your camera roll · {card.d}</span>
                   {isTop && (
                     <>
-                      <span ref={el => { stamps.current.left = el }} className="stamp" style={{ color: '#716A80', borderColor: '#716A80', left: 22, right: 'auto', transform: 'rotate(-12deg)', opacity: 0 }}>NOT NOW</span>
+                      <span ref={el => { stamps.current.left = el }} className="stamp" style={{ color: '#6F5F5B', borderColor: '#6F5F5B', left: 22, right: 'auto', transform: 'rotate(-12deg)', opacity: 0 }}>NOT NOW</span>
                       <span ref={el => { stamps.current.right = el }} className="stamp" style={{ color: '#fff', borderColor: '#fff', opacity: 0 }}>ADD</span>
                     </>
                   )}
@@ -244,13 +244,13 @@ function Swipe({
 }
 
 const CAMPUS: DeckCard[] = [
-  { k: 'burrito', n: 'Dining hall grain bowl', m: 'Campus dining · add greens', d: 'On campus', bg: '#E7DDF9', veg: true },
+  { k: 'burrito', n: 'Dining hall grain bowl', m: 'Campus dining · add greens', d: 'On campus', bg: '#F7E6E3', veg: true },
   { k: 'taco', n: 'Food truck tacos', m: 'Near campus · ask for beans', d: 'On campus', bg: '#FFF0C9', veg: true },
   { k: 'salad', n: 'Campus cafe salad', m: 'Near campus · add a protein', d: 'On campus', bg: '#E2EEFB', veg: true },
   { k: 'ramen', n: 'Late-night ramen', m: 'Near campus · add an egg or tofu', d: 'On campus', bg: '#FBD9E1', veg: true },
 ]
 
-const BGS = ['#E7DDF9', '#FBD9E1', '#FFF0C9', '#E2EEFB']
+const BGS = ['#F7E6E3', '#FBD9E1', '#FFF0C9', '#E2EEFB']
 
 function placeCards(names: string[], P: Profile): DeckCard[] {
   return names.map((name, i) => {

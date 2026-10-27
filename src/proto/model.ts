@@ -114,19 +114,19 @@ export const FOODS: Record<string, Food> = {
 }
 
 export const SAMPLES: Sample[] = [
-  { k: 'burrito', n: 'Burrito bowl', items: ['Rice', 'Black beans', 'Chicken', 'Salsa'], bg: '#E7DDF9' },
+  { k: 'burrito', n: 'Burrito bowl', items: ['Rice', 'Black beans', 'Chicken', 'Salsa'], bg: '#F7E6E3' },
   { k: 'toast', n: 'Avocado toast', items: ['Toast', 'Avocado'], bg: '#FFF0C9' },
   { k: 'ramen', n: 'Ramen', items: ['Noodles', 'Broth', 'Egg'], bg: '#FBD9E1' },
   { k: 'pancakes', n: 'Pancakes', items: ['Pancakes', 'Syrup', 'Strawberries'], bg: '#E2EEFB' },
 ]
 
 export const DECK: DeckCard[] = [
-  { k: 'salad', n: 'Salmon grain bowl', m: 'High protein, about 15 minutes', d: 'Aug 3', bg: '#E7DDF9', veg: false },
+  { k: 'salad', n: 'Salmon grain bowl', m: 'High protein, about 15 minutes', d: 'Aug 3', bg: '#F7E6E3', veg: false },
   { k: 'ramen', n: 'Miso ramen', m: 'Cozy, about 20 minutes', d: 'Jul 21', bg: '#FBD9E1', veg: true },
   { k: 'taco', n: 'Tofu tacos', m: 'Plant protein, about 15 minutes', d: 'Sep 9', bg: '#FFF0C9', veg: true },
   { k: 'pancakes', n: 'Banana pancakes', m: 'Weekend breakfast', d: 'Jun 30', bg: '#E2EEFB', veg: true },
   { k: 'curry', n: 'Chickpea curry', m: 'High fiber, meal-prep friendly', d: 'Sep 22', bg: '#FDE7B0', veg: true },
-  { k: 'bagel', n: 'Bagel and eggs', m: 'Quick breakfast', d: 'Aug 18', bg: '#F3ECFF', veg: true },
+  { k: 'bagel', n: 'Bagel and eggs', m: 'Quick breakfast', d: 'Aug 18', bg: '#FBEDEA', veg: true },
   { k: 'sushi', n: 'Sushi night', m: 'With friends', d: 'Jul 4', bg: '#E2EEFB', veg: false },
 ]
 
@@ -371,7 +371,7 @@ export function scoreLabel(n: number) {
 }
 
 export function scoreColor(n: number) {
-  return n >= 80 ? '#8C6BCF' : n >= 60 ? '#B7A3E6' : '#F2C230'
+  return n >= 80 ? '#990000' : n >= 60 ? '#D68C85' : '#FFCC00'
 }
 
 const QUOTES: Record<string, string[]> = {

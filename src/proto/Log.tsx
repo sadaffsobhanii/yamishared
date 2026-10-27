@@ -90,7 +90,7 @@ export function Log() {
 
   useEffect(() => {
     if (!log) {
-      setLog({ step: 'start', img: null, k: null, bg: '#E7DDF9', items: [], name: '' })
+      setLog({ step: 'start', img: null, k: null, bg: '#F7E6E3', items: [], name: '' })
     }
   }, [log, setLog])
 
@@ -164,7 +164,7 @@ export function Log() {
       place: log?.place ?? null,
       img: URL.createObjectURL(file),
       k: null,
-      bg: '#E7DDF9',
+      bg: '#F7E6E3',
       items: [],
       name: 'Your meal',
     })
@@ -210,7 +210,7 @@ export function Log() {
                 type="button"
                 className="w"
                 style={{ display: 'block', width: '100%', textAlign: 'left', marginBottom: 8, border: '1.5px solid var(--line)' }}
-                onClick={() => setLog({ step: 'result', img: null, k: null, bg: '#E7DDF9', items: usual.items, name: usual.name, place: usual.place, sizes: usual.sizes, packaged: usual.packaged })}
+                onClick={() => setLog({ step: 'result', img: null, k: null, bg: '#F7E6E3', items: usual.items, name: usual.name, place: usual.place, sizes: usual.sizes, packaged: usual.packaged })}
               >
                 <b>{usual.name}</b>
                 <span className="small" style={{ display: 'block' }}>
@@ -222,7 +222,7 @@ export function Log() {
             ))}
           </>
         )}
-        <label className="btn" htmlFor="take-photo" style={{ width: '100%', height: 56, borderRadius: 99, background: 'var(--purple)', color: '#fff', fontWeight: 800, fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 8px 18px rgba(140,107,207,.35)' }}>
+        <label className="btn" htmlFor="take-photo" style={{ width: '100%', height: 56, borderRadius: 99, background: 'var(--purple)', color: '#fff', fontWeight: 800, fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 8px 18px rgba(153,0,0,.35)' }}>
           <Emoji k="camera" size={22} />
           Take a photo
         </label>
@@ -253,7 +253,7 @@ export function Log() {
             place: 'parkside',
             img: parksidePlate,
             k: 'sample',
-            bg: '#E7DDF9',
+            bg: '#F7E6E3',
             items: [],
             name: 'Parkside lunch',
           })}

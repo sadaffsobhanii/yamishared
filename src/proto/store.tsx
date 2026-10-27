@@ -212,7 +212,7 @@ export function YamiProvider({ children }: { children: ReactNode }) {
     setCartOpen(false)
     setChefOpen(false)
     if (next === 'log') {
-      setLog({ step: 'start', img: null, k: null, bg: '#E7DDF9', items: [], name: '' })
+      setLog({ step: 'start', img: null, k: null, bg: '#F7E6E3', items: [], name: '' })
       setChat([])
     }
     requestAnimationFrame(() => {

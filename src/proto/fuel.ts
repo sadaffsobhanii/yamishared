@@ -247,8 +247,8 @@ export function drawRing(canvas: HTMLCanvasElement, score: number | null) {
       context.beginPath()
       context.arc(center + radius * Math.cos(angle), center + radius * Math.sin(angle), width * (0.0065 + (1 - tone) * 0.0035), 0, 7)
       context.fillStyle = on
-        ? `rgba(${Math.round(140 + 102 * tone)},${Math.round(107 + 87 * tone)},${Math.round(207 - 159 * tone)},${0.95 - tone * 0.4})`
-        : 'rgba(201,182,238,.28)'
+        ? `rgba(${Math.round(153 + 102 * tone)},${Math.round(204 * tone)},0,${0.95 - tone * 0.4})`
+        : 'rgba(227,168,163,.28)'
       context.fill()
     }
   }

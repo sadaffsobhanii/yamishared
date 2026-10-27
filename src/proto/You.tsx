@@ -77,7 +77,7 @@ export function You() {
             <Emoji k="lock" size={26} />
             <span><b>Health notes</b><br /><span className="small">Private and optional</span></span>
           </span>
-          <span style={{ color: '#B7A3E6', fontWeight: 800 }}>&rsaquo;</span>
+          <span style={{ color: '#D68C85', fontWeight: 800 }}>&rsaquo;</span>
         </button>
         {notesOpen && (
           <div>
@@ -133,7 +133,7 @@ function Row({ label, value, onClick }: { label: string; value: string; onClick:
   return (
     <button className="row" onClick={onClick}>
       <span style={{ fontWeight: 700 }}>{label}</span>
-      <span className="v">{value || 'Not set'} <span style={{ color: '#B7A3E6' }}>&rsaquo;</span></span>
+      <span className="v">{value || 'Not set'} <span style={{ color: '#D68C85' }}>&rsaquo;</span></span>
     </button>
   )
 }

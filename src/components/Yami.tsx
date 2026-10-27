@@ -23,9 +23,9 @@ type Palette = {
 }
 
 const PALETTE: Record<YamiCharacter, Palette> = {
-  bunny: { light: '#F3E7FF', mid: '#D7B6F3', deep: '#B48ADF', ear: '#C9A4E8', inner: '#F6E7A8', lid: '#D7B8EE' },
+  bunny: { light: '#FAE8E5', mid: '#E4B1AB', deep: '#B48ADF', ear: '#C9A4E8', inner: '#F6E7A8', lid: '#E4B3AD' },
   chick: { light: '#FFF6D0', mid: '#FFE08A', deep: '#F5C542', ear: '#F5C542', inner: '#FFF3C4', lid: '#FFE7A8' },
-  moon: { light: '#F4F0FF', mid: '#D9D0F8', deep: '#A99BE0', ear: '#C8BDF0', inner: '#F7F4FF', lid: '#D5CCF4' },
+  moon: { light: '#FCF4F2', mid: '#EED3CF', deep: '#A99BE0', ear: '#C8BDF0', inner: '#FCF7F5', lid: '#ECD1CC' },
 }
 
 export function Yami({
@@ -75,7 +75,7 @@ export function Yami({
           <path
             d={mood === 'awake' ? 'M86 156 Q100 170 114 156' : 'M90 158 Q100 166 110 158'}
             fill="none"
-            stroke="#3A2A55"
+            stroke="#2B1414"
             strokeWidth="3.4"
             strokeLinecap="round"
           />
@@ -123,8 +123,8 @@ function Ears({ character, palette }: { character: YamiCharacter; palette: Palet
 function AwakeEyes() {
   return (
     <g>
-      <ellipse cx="74" cy="118" rx="16" ry="20" fill="#3A2A55" />
-      <ellipse cx="126" cy="118" rx="16" ry="20" fill="#3A2A55" />
+      <ellipse cx="74" cy="118" rx="16" ry="20" fill="#2B1414" />
+      <ellipse cx="126" cy="118" rx="16" ry="20" fill="#2B1414" />
       <ellipse cx="70" cy="110" rx="5" ry="6.5" fill="#FFFFFF" />
       <ellipse cx="122" cy="110" rx="5" ry="6.5" fill="#FFFFFF" />
       <circle cx="80" cy="124" r="2.4" fill="#FFFFFF" opacity="0.75" />
@@ -136,8 +136,8 @@ function AwakeEyes() {
 function SleepyEyes() {
   return (
     <g>
-      <path d="M58 120 Q74 132 90 120" fill="none" stroke="#3A2A55" strokeWidth="4" strokeLinecap="round" />
-      <path d="M110 120 Q126 132 142 120" fill="none" stroke="#3A2A55" strokeWidth="4" strokeLinecap="round" />
+      <path d="M58 120 Q74 132 90 120" fill="none" stroke="#2B1414" strokeWidth="4" strokeLinecap="round" />
+      <path d="M110 120 Q126 132 142 120" fill="none" stroke="#2B1414" strokeWidth="4" strokeLinecap="round" />
       <g fill="#8E6BB5" fontFamily="Nunito, sans-serif" fontWeight="800">
         <text x="158" y="58" fontSize="16">
           z
@@ -153,8 +153,8 @@ function SleepyEyes() {
 function DrowsyEyes({ lid }: { lid: string }) {
   return (
     <g>
-      <ellipse cx="74" cy="124" rx="15" ry="12" fill="#3A2A55" />
-      <ellipse cx="126" cy="124" rx="15" ry="12" fill="#3A2A55" />
+      <ellipse cx="74" cy="124" rx="15" ry="12" fill="#2B1414" />
+      <ellipse cx="126" cy="124" rx="15" ry="12" fill="#2B1414" />
       <ellipse cx="70" cy="120" rx="4" ry="4" fill="#FFFFFF" />
       <ellipse cx="122" cy="120" rx="4" ry="4" fill="#FFFFFF" />
       <path d="M58 118 Q74 104 90 118 Q74 114 58 118" fill={lid} />
