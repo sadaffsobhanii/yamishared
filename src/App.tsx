@@ -22,7 +22,7 @@ function ChefHat() {
     <svg width="34" height="30" viewBox="0 0 34 30" aria-hidden="true">
       <path d="M8 20c-5-1-7-8-2-11 1-5 7-7 10-3 3-4 9-3 10 2 5 0 7 7 2 10z" fill="#fff" />
       <rect x="8" y="20" width="18" height="7" rx="2" fill="#fff" />
-      <path d="M13 15v4M17 13v6M21 15v4" stroke="#8C6BCF" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M13 15v4M17 13v6M21 15v4" stroke="#990000" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   )
 }

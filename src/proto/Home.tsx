@@ -119,7 +119,7 @@ export function Home() {
           <h2 className="h">Hi, {P.name || 'friend'}</h2>
         </div>
         <button className="cartbtn" aria-label={`Your grocery cart, ${openCount} items`} onClick={() => setCartOpen(true)}>
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6A4BB0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6E0000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6.2" />
             <circle cx="10" cy="20" r="1.4" />
             <circle cx="17" cy="20" r="1.4" />
@@ -254,11 +254,11 @@ export function Home() {
           ))}
         </div>
       </div>
-      <div className="w wide" style={{ background: 'linear-gradient(135deg,#FFF3C4,#F3ECFF)', marginBottom: 12 }}>
+      <div className="w wide" style={{ background: 'linear-gradient(135deg,#FFF3C4,#FBEDEA)', marginBottom: 12 }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <span style={{ position: 'relative', width: 86, height: 92, flex: 'none' }}>
             <span className="tile" style={{ position: 'absolute', left: 0, top: 10, width: 60, height: 78, background: '#FBD9E1', transform: 'rotate(-8deg)' }}><Emoji k="ramen" size={32} /></span>
-            <span className="tile" style={{ position: 'absolute', left: 22, top: 2, width: 60, height: 78, background: '#E7DDF9', transform: 'rotate(6deg)', boxShadow: '0 4px 10px rgba(0,0,0,.1)' }}><Emoji k="salad" size={34} /></span>
+            <span className="tile" style={{ position: 'absolute', left: 22, top: 2, width: 60, height: 78, background: '#F7E6E3', transform: 'rotate(6deg)', boxShadow: '0 4px 10px rgba(0,0,0,.1)' }}><Emoji k="salad" size={34} /></span>
           </span>
           <span style={{ flex: 1 }}>
             <span className="eyebrow">{dayMode ? "Today's focus" : 'Meal inspiration'}</span>

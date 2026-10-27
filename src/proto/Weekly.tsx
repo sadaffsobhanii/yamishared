@@ -43,7 +43,7 @@ export function Weekly() {
             Order Smart
           </button>
         ) : (
-          <div className="small" style={{ color: '#CFC6E4' }}>Tap to continue</div>
+          <div className="small" style={{ color: '#E2CBC6' }}>Tap to continue</div>
         )}
       </div>
     </div>
