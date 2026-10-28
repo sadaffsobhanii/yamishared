@@ -49,7 +49,7 @@ export function Insights() {
               {fuel.parts.map(part => (
                 <button key={part.k} style={{ textAlign: 'left', padding: 4 }} onClick={() => setExplain({ title: part.label, intro: part.why, rows: [part], tip: part.val != null && part.val < 85 ? part.tip : null })}>
                   <span className="small">{part.label}</span>
-                  <b style={{ display: 'block', fontFamily: 'var(--display)', fontSize: 22, color: part.val == null ? '#B7A3E6' : part.val >= 70 ? 'var(--purple)' : '#C9A100', fontVariantNumeric: 'tabular-nums' }}>{part.val ?? '–'}</b>
+                  <b style={{ display: 'block', fontFamily: 'var(--display)', fontSize: 22, color: part.val == null ? '#D68C85' : part.val >= 70 ? 'var(--purple)' : '#C9A100', fontVariantNumeric: 'tabular-nums' }}>{part.val ?? '–'}</b>
                 </button>
               ))}
             </div>
@@ -104,7 +104,7 @@ function WeekView({ onExplain }: { onExplain: (next: { title: string; intro: str
           {week.days.map((day, index) => (
             <div key={index} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '100%', gap: 4 }}>
               <span style={{ fontSize: 11.5, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{day.f ?? ''}</span>
-              <i style={{ display: 'block', width: '100%', borderRadius: 10, height: day.f != null ? Math.max(8, day.f) : 14, background: day.f == null ? '#EFE9FA' : day.today ? 'var(--sun)' : day.f >= 75 ? 'var(--purple)' : '#B7A3E6' }} />
+              <i style={{ display: 'block', width: '100%', borderRadius: 10, height: day.f != null ? Math.max(8, day.f) : 14, background: day.f == null ? '#F6EEE8' : day.today ? 'var(--sun)' : day.f >= 75 ? 'var(--purple)' : '#D68C85' }} />
             </div>
           ))}
         </div>
@@ -160,8 +160,8 @@ function Explain({ title, intro, rows, tip, onClose }: { title: string; intro: s
         <div className="msgs" style={{ gap: 0 }}>
           <p style={{ margin: '0 0 8px', lineHeight: 1.5, fontWeight: 600 }}>{intro}</p>
           {rows.map(row => (
-            <div key={row.label} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px 0', borderBottom: '1px solid #EFE9FA' }}>
-              <span style={{ flex: 'none', width: 44, textAlign: 'right', fontFamily: 'var(--display)', fontWeight: 800, fontSize: 20, color: row.val == null ? '#B7A3E6' : row.val >= 70 ? 'var(--deep)' : '#8A6200' }}>{row.val ?? '–'}</span>
+            <div key={row.label} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px 0', borderBottom: '1px solid #F6EEE8' }}>
+              <span style={{ flex: 'none', width: 44, textAlign: 'right', fontFamily: 'var(--display)', fontWeight: 800, fontSize: 20, color: row.val == null ? '#D68C85' : row.val >= 70 ? 'var(--deep)' : '#8A6200' }}>{row.val ?? '–'}</span>
               <span><b>{row.label}</b><span className="small" style={{ display: 'block', marginTop: 2, lineHeight: 1.45 }}>{row.why}</span></span>
             </div>
           ))}

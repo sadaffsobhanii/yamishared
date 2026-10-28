@@ -228,7 +228,7 @@ function MealCard({
   const score = mealScore(profile, item.p, item.f, item.f >= 8)
   const tip = mode === LATE ? 'Add a water or electrolyte drink to your order.' : `Tip: ${item.tip}`
   return (
-    <div className="w" style={{ marginBottom: 10, background: top ? 'linear-gradient(135deg,#FFF3C4,#F3ECFF)' : undefined, padding: top ? 18 : undefined }}>
+    <div className="w" style={{ marginBottom: 10, background: top ? 'linear-gradient(135deg,#FFF3C4,#FBEDEA)' : undefined, padding: top ? 18 : undefined }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start' }}>
         <span style={{ minWidth: 0 }}>
           <span className="small" style={{ display: 'block' }}>{restaurant} · {ETA[restaurant] || '20 to 30 min'}</span>
