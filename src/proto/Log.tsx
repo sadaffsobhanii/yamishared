@@ -5,7 +5,7 @@ import { SECTION, cartPrice, dollars, instacartLink, shopStore, withCartItem } f
 import { lookupBarcode, readBarcode } from './barcode'
 import { SIZE_FACTOR, readPhoto, visionAvailable } from './camera'
 import { applyFixes, rememberFixes, rememberMeal, usuals } from './habits'
-import { FOODS, advise, foodFromKind, scoreColor, scoreLabel, type LogDraft, type PortionSize } from './model'
+import { FOODS, advise, foodFromKind, scoreColor, type LogDraft, type PortionSize } from './model'
 import { PLACES, placeLabel } from './places'
 import { preloadPhotoReader } from './scan'
 import { nutritionFor, resize, sourceLink, type Nutrition } from './usda'
@@ -122,7 +122,7 @@ export function Log() {
       try {
         const reading = await readPhoto(photo, log.place ?? null)
         if (log.k === 'sample' && reading.by === 'device') {
-          done({ items: SAMPLE_ITEMS, name: 'Parkside lunch', place: 'parkside', by: 'device', note: undefined })
+          done({ items: SAMPLE_ITEMS, name: 'Parkside lunch', place: 'parkside', by: 'device', why: reading.why, note: undefined })
           return
         }
         const spotted = { ...(log.spotted || {}) }
@@ -137,9 +137,9 @@ export function Log() {
         })
         // A second photo adds to the plate; the first one sets it.
         const items = extra ? [...log.items, ...found.filter(name => !log.items.includes(name))] : found
-        done({ items, name: extra ? log.name : reading.meal, place: reading.place, by: reading.by, spotted, sizes, origin, note: undefined })
+        done({ items, name: extra ? log.name : reading.meal, place: reading.place, by: reading.by, why: reading.why, spotted, sizes, origin, note: undefined })
       } catch {
-        done({ items: extra ? log.items : [] })
+        done({ items: extra ? log.items : [], note: "Yami couldn't read this photo. Claude was unavailable and the on-device reader didn't load. Add the foods yourself." })
       }
     })()
     return () => { cancel = true }
@@ -296,6 +296,13 @@ export function Log() {
             : log.note ? '' : 'This is a sample plate. Change anything that is not right.'}
         </p>
         {log.note && <p className="small" style={{ margin: '0 0 12px', fontWeight: 700 }}>{log.note}</p>}
+        {log.img && log.k !== 'sample' && log.mode !== 'barcode' && log.by && (
+          <p className="small" role="status" style={{ margin: '0 0 12px', fontWeight: 700 }}>
+            {log.by === 'claude'
+              ? 'Read by: Claude. These are estimates of the foods and amounts, so check them.'
+              : `Read by: on-device fallback. It guesses one label for the whole photo and cannot judge amounts${log.why ? `, because ${log.why}` : ''}. Check every food below.`}
+          </p>
+        )}
         {placeLabel(log.place) && <p className="small" style={{ margin: '0 0 12px' }}>At {placeLabel(log.place)}</p>}
         <label className="small" htmlFor="meal-name" style={{ fontWeight: 800 }}>Meal name</label>
         <input id="meal-name" className="field" value={log.name} aria-label="Meal name" style={{ margin: '6px 0 12px' }} onChange={e => setLog({ ...log, name: e.target.value })} />
@@ -388,6 +395,18 @@ export function Log() {
   }
 
   if (!result) return null
+  // Database numbers fit the food name, not what is on the plate. For a photo, the foods and amounts are still a model's guess,
+  // so the score and tips are always framed as rough, and gaps as optional additions rather than something missing.
+  const fromPhoto = !!log.img && log.mode !== 'barcode'
+  const estimated = fromPhoto || !usdaReady || log.items.some(item => !nutrition[item])
+  const suggestion = result.offers.length
+    ? `For more ${result.offers.map(offer => offer.gap).join(' and ')}, consider adding ${result.offers.map(offer => offer.item.toLowerCase()).join(' or ')}.`
+    : null
+  const tip = suggestion ?? result.tip
+  const praise = !estimated || result.praise === 'Thanks for logging!' ? result.praise : `Looks like ${result.praise.replace(/^This is /, '').replace(/!$/, '').replace(/^(\w)/, c => c.toLowerCase())}.`
+  const whyText = !estimated ? result.why
+    : result.offers.length ? 'A plate can feel steadier with protein, vegetables and some fiber. Based on the foods and amounts Yami estimated, the idea above is optional.'
+    : 'Based on the foods and amounts Yami estimated, this looks fairly balanced. A glass of water goes well with it.'
   function finish() {
     const day = new Date().toLocaleDateString('en-US', { weekday: 'short' })
     const foods = Object.fromEntries(Object.entries(measured).map(([item, food]) => [item, { ...food, t: food.t ?? [] }]))
@@ -398,7 +417,7 @@ export function Log() {
       k: log!.k,
       bg: log!.bg,
       img: log!.img,
-      tip: result!.tip,
+      tip,
       add: Object.keys(picked).length ? Object.keys(picked).join(', ') : null,
       store: Object.values(picked).includes('online') ? 'Instacart' : (Object.keys(picked).length ? shopStore(P) : undefined),
       section: result!.missing.length === 1 ? (SECTION[result!.missing[0]] || 'Pantry') : undefined,
@@ -410,14 +429,15 @@ export function Log() {
     <>
       <div className="center" style={{ marginTop: 10 }}><Bunny mood={result.mood} size={110} /></div>
       <div className="center" style={{ margin: '-4px 0 6px' }}>
-        <span className="pill sm" style={{ background: scoreColor(result.score), color: result.score >= 60 ? '#fff' : 'var(--ink)' }}>Meal score {result.score} · {scoreLabel(result.score)}</span>
+        <span className="pill sm" style={{ background: scoreColor(result.score), color: result.score >= 60 ? '#fff' : 'var(--ink)' }}>{estimated ? `Rough meal score ${result.score}` : `Meal score ${result.score}`}</span>
       </div>
-      <h3 className="q center" style={{ marginBottom: 8 }}>{result.praise}</h3>
-      <p className="center" style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--muted)', fontWeight: 600 }}>{result.tip}</p>
+      <h3 className="q center" style={{ marginBottom: 8 }}>{praise}</h3>
+      <p className="center" style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--muted)', fontWeight: 600 }}>{tip}</p>
+      {estimated && <p className="center small" role="status" style={{ margin: '0 0 8px', fontWeight: 700 }}>Estimate only: the foods and amounts come from a photo guess and nutrition numbers fit the food name, not your exact plate. Treat this score and these ideas as a rough guide.</p>}
       <div className="center">
         <button className="ghost" aria-expanded={why} onClick={() => setWhy(open => !open)}>Why? &rsaquo;</button>
       </div>
-      <div className="why" hidden={!why}>{result.why}</div>
+      <div className="why" hidden={!why}>{whyText}</div>
       <div className="w" style={{ marginTop: 16, display: 'flex', gap: 10, alignItems: 'center' }}>
         <span className="small" style={{ flex: 1 }}>{log.items.length} {log.items.length === 1 ? 'food' : 'foods'} · about {result.p}g protein · {result.f}g fiber{P.show.calories ? ` · ${result.c} cal` : ''}</span>
       </div>
@@ -429,6 +449,11 @@ export function Log() {
               : "No database match, so these are Yami's estimates."
             : 'Checking USDA FoodData Central…'}
         </span>
+        {usdaReady && (
+          <p className="small" style={{ margin: '6px 0 0' }}>
+            Sources: {log.items.map(item => `${item || 'Food'} (${nutrition[item] ? (nutrition[item]!.source === 'USDA' ? 'USDA' : 'Open Food Facts label') : 'estimated'})`).join(', ')}. Amounts are estimates, so change them if they look off.
+          </p>
+        )}
         {usdaReady && Object.values(nutrition).some(Boolean) && (
           <>
             <button className="ghost" type="button" aria-expanded={usdaOpen} onClick={() => setUsdaOpen(open => !open)} style={{ display: 'block' }}>
@@ -465,7 +490,7 @@ export function Log() {
         const price = cartPrice(offer.item, place)
         return (
           <div className="w" key={offer.item} style={{ marginTop: 12, background: 'var(--sun-soft)' }}>
-            <div className="eyebrow" style={{ color: '#8A6200' }}>Missing {offer.gap}</div>
+            <div className="eyebrow" style={{ color: '#8A6200' }}>Optional: more {offer.gap}</div>
             {choice ? (
               <>
                 <p style={{ margin: '6px 0 10px', fontWeight: 700 }}>
@@ -481,14 +506,14 @@ export function Log() {
             ) : (
               <>
                 <p style={{ margin: '6px 0 10px', fontWeight: 700 }}>
-                  Missing {offer.gap}: add {food}. Do you want me to add {food} into your grocery cart?
+                  For more {offer.gap}, consider {food}. Want me to add {food} to your grocery cart?
                 </p>
                 <p className="small" style={{ margin: '0 0 10px' }}>{shopStore(P)} · {SECTION[offer.item] || 'Pantry'} · {dollars(cartPrice(offer.item, shopStore(P)))}</p>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button
                     className="pill sm dark"
                     onClick={() => {
-                      const from = `Missing ${offer.gap} from your ${log.name.toLowerCase()}`
+                      const from = `For more ${offer.gap} with your ${log.name.toLowerCase()}`
                       setList(current => withCartItem(current, offer.item, from, P))
                       setCartMode('store')
                       setPicked(current => ({ ...current, [offer.item]: 'store' }))
@@ -500,7 +525,7 @@ export function Log() {
                   <button
                     className="pill primary sm"
                     onClick={() => {
-                      const from = `Missing ${offer.gap} from your ${log.name.toLowerCase()}`
+                      const from = `For more ${offer.gap} with your ${log.name.toLowerCase()}`
                       setList(current => withCartItem(current, offer.item, from, P, true))
                       setCartMode('online')
                       setPicked(current => ({ ...current, [offer.item]: 'online' }))
