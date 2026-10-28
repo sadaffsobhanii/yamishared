@@ -25,7 +25,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
 .side p{color:var(--muted);line-height:1.55;margin:0 0 14px}
 .side ol{margin:0;padding-left:18px;color:var(--ink);line-height:1.7;font-weight:600}
 .side .note{font-size:13px;color:var(--muted);margin-top:16px}
-.screen{flex:1;overflow-y:auto;padding:22px 18px 110px;-webkit-overflow-scrolling:touch}
+.screen{flex:1;overflow-y:auto;padding:22px 18px calc(170px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch}
 .screen.ob{overflow-x:hidden}
 .screen.noTab{padding-bottom:28px}
 .hello{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}

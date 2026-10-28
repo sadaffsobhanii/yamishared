@@ -13,7 +13,7 @@ function visionApi(): Plugin {
         res.setHeader('Content-Type', 'application/json')
         if (!process.env.ANTHROPIC_API_KEY) {
           res.statusCode = 503
-          res.end(JSON.stringify({ error: 'no-key' }))
+          res.end(JSON.stringify({ ok: false, error: 'no-key' }))
           return
         }
         if (req.method === 'GET') {
@@ -33,7 +33,7 @@ function visionApi(): Plugin {
           } catch (error) {
             server.config.logger.error(`[vision] ${error instanceof Error ? error.message : String(error)}`)
             res.statusCode = 502
-            res.end(JSON.stringify({ error: 'upstream' }))
+            res.end(JSON.stringify({ error: 'upstream', detail: error instanceof Error ? error.message.slice(0, 120) : 'unknown' }))
           }
         })
       })

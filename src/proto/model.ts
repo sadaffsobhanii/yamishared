@@ -52,6 +52,7 @@ export type LogDraft = {
   mode?: 'photo' | 'barcode'
   extraImg?: string | null
   by?: 'claude' | 'device'
+  why?: string
   sizes?: Record<string, PortionSize>
   spotted?: Record<string, { usda?: string; grams?: number; size?: PortionSize; kind?: string; whole?: boolean }>
   packaged?: Record<string, import('./usda').Nutrition>
