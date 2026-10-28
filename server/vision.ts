@@ -1,13 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { PLACES } from '../src/proto/places'
+import { normalizeReading, type VisionResult } from './reading'
 
 // Reads a meal photo with Claude: every food on the plate, roughly how much, and where it's from.
 // Runs on the dev server only, so the API key never reaches the browser.
 
 export type VisionRequest = { image: string; place?: string | null }
 
-export type VisionItem = { name: string; usda: string; grams: number; size: 'small' | 'regular' | 'large'; kind: string; whole: boolean }
-export type VisionResult = { food: boolean; meal: string; place: string | null; items: VisionItem[] }
+export type { VisionItem, VisionResult } from './reading'
 
 const SCHEMA = {
   type: 'object',
@@ -56,6 +56,11 @@ Estimate honestly; the person can correct anything. Never comment on whether the
 
 let client: Anthropic | null = null
 
+// The client can be swapped in tests so no real request (or key) is needed.
+export function setVisionClient(next: Pick<Anthropic, 'beta'> | null) {
+  client = next as Anthropic | null
+}
+
 export async function readMeal(body: VisionRequest): Promise<VisionResult> {
   client ??= new Anthropic()
   const match = /^data:(image\/(?:jpeg|png|webp|gif));base64,(.+)$/.exec(body.image)
@@ -81,7 +86,8 @@ export async function readMeal(body: VisionRequest): Promise<VisionResult> {
   })
 
   if (response.stop_reason === 'refusal') throw new Error('refusal')
+  if (response.stop_reason === 'max_tokens') throw new Error('truncated')
   const text = response.content.find((block): block is Anthropic.Beta.BetaTextBlock => block.type === 'text')?.text
   if (!text) throw new Error('empty response')
-  return JSON.parse(text) as VisionResult
+  return normalizeReading(JSON.parse(text), PLACES.map(p => p.id))
 }
