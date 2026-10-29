@@ -213,7 +213,7 @@ export const QUESTIONS: Question[] = [
 
 export const ALLERGY_Q: Question = {
   type: 'chips', key: 'allergies', max: 12, q: 'What are you allergic to?', hint: 'Choose as many as you like',
-  opts: ['Peanuts', 'Tree nuts', 'Milk', 'Eggs', 'Shellfish', 'Fish', 'Wheat', 'Soy', 'Sesame', 'Something else'],
+  opts: ['Peanuts', 'Tree nuts', 'Dairy', 'Eggs', 'Shellfish', 'Fish', 'Gluten', 'Soy', 'Sesame', 'Something else'],
   text: { key: 'allergyNote', ph: 'Anything else you are allergic to?' }, textWhen: 'Something else',
 }
 
