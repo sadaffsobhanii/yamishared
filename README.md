@@ -2,14 +2,14 @@
 
 A warm nutrition companion — mobile-first prototype.
 
-## Official version (as of Nov 4, 2026)
+## The app moved: one version only (Nov 8, 2026)
 
-**`yami-prototype.html` is the one version everyone uses.** It's the Oct 27 app (USC look, Trojan Yami, new onboarding, Home, Snap and Cart tabs, dairy and gluten labels) plus Liz's Oct 30 edits (real meal photos, home-screen app icon, Taco-Taco card removed, iced Americano on the Starbucks card).
+**The one and only Yami app now lives in the website repo: [garard-cpu/yami-website](https://github.com/garard-cpu/yami-website), file `app/index.html`.** It's Saf's Nov 7 version (groceries helper, caffeine tracking, badges and share card) plus logins (email, Google) and the meal photos.
 
 - Live link: https://yami-usc.netlify.app/app/
-- `app/` is an exact copy of the live app folder (photos, icons, manifest). `app/index.html` is the same file as `yami-prototype.html`.
-- **Make touch-ups in `yami-prototype.html` only.** Then copy it to `app/index.html` in Liz's repo (garard-cpu/yami-website) so it goes live.
-- **Don't edit the `src` folder for now.** It's older code that doesn't have the Oct 27 screens. If it gets built and published, those screens disappear.
+- **Make all edits there.** Changes merged to its `main` go live automatically; every pull request gets its own preview link first.
+- The old copies (`yami-prototype.html` and `app/`) were removed from this repo so nobody edits a version without logins by mistake. They're still in this repo's history if ever needed.
+- **Don't edit the `src` folder.** It's older code without the Oct 27 screens.
 
 The setup steps below are for the older `src` code.
 
