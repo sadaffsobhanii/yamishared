@@ -1837,20 +1837,23 @@ var leaf=function(x,y,r,c){return '<path transform="translate('+x+' '+y+') rotat
 var wheat='<path d="M48 76V30" '+S+' fill="none"/>'+[0,1,2].map(function(i){var y=38+i*12;return '<ellipse cx="41" cy="'+y+'" rx="5" ry="8" transform="rotate(-30 41 '+y+')" fill="'+GOLD+'" '+S+'/><ellipse cx="55" cy="'+y+'" rx="5" ry="8" transform="rotate(30 55 '+y+')" fill="'+GOLD+'" '+S+'/>'}).join('')+'<ellipse cx="48" cy="26" rx="5" ry="8" fill="'+GOLD+'" '+S+'/>';
 var sprout='<path d="M48 76V46" '+S+' fill="none"/>'+leaf(48,48,-50)+leaf(48,48,50);
 var star=function(c){return '<path d="M48 16l9 20 22 2-17 14 5 22-19-12-19 12 5-22-17-14 22-2z" fill="'+(c||GOLD)+'" '+S+'/>'};
+var BID=0;function cap(){var N=20,R=41,cx=48,cy=48,d='';for(var i=0;i<=N;i++){var a=i/N*2*Math.PI-Math.PI/2,x=(cx+R*Math.cos(a)).toFixed(2),y=(cy+R*Math.sin(a)).toFixed(2);d+=(i?' A6.6 6.6 0 0 1 ':'M')+x+' '+y}return d+'Z'}
+var CAP=cap();
+function stamp(o){var id='yb'+(++BID),fill=o.fill||RED,tc=o.tc||(fill===RED?CREAM:INKC),big=o.big||'',sm=o.sm||'',fs=o.fs||(big.length>3?19:big.length>2?23:28);return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g transform="translate(4 4)"><path d="'+CAP+'" fill="'+INKC+'"/></g><path d="'+CAP+'" fill="'+CREAM+'" stroke="'+INKC+'" stroke-width="3"/><circle cx="48" cy="48" r="33" fill="'+fill+'" stroke="'+INKC+'" stroke-width="2.5"/><defs><path id="'+id+'" d="M48 48m-26 0a26 26 0 1 1 52 0a26 26 0 1 1 -52 0"/></defs><text font-family="JetBrains Mono, Menlo, monospace" font-weight="800" font-size="6.6" letter-spacing="1.1" fill="'+tc+'" opacity=".9"><textPath href="#'+id+'" startOffset="0">'+o.ring+'</textPath></text>'+(o.glyph||'<text x="48" y="'+(sm?52:57)+'" text-anchor="middle" font-family="Bricolage Grotesque, DM Sans, sans-serif" font-weight="800" font-size="'+fs+'" letter-spacing="-.5" fill="'+tc+'">'+big+'</text>')+(sm?'<text x="48" y="63" text-anchor="middle" font-family="JetBrains Mono, Menlo, monospace" font-weight="800" font-size="6.8" letter-spacing=".8" fill="'+tc+'">'+sm+'</text>':'')+'</svg>'}
 var ART={
- first:function(){return base(GOLD,'<circle cx="48" cy="50" r="22" fill="#fff" '+S+'/><circle cx="48" cy="50" r="13" fill="none" stroke="'+INKC+'" stroke-width="2.5" stroke-dasharray="3 4"/><path d="M19 30v14M15 30v8a4 4 0 0 0 8 0v-8M19 44v28" fill="none" '+S+'/><path d="M77 72V30c-6 4-7 14-4 22h4" fill="#fff" '+S+'/><path d="M48 22l2.5 5.5 5.5 2.5-5.5 2.5-2.5 5.5-2.5-5.5-5.5-2.5 5.5-2.5z" fill="'+RED+'" stroke="'+INKC+'" stroke-width="2" stroke-linejoin="round" transform="translate(0 -10)"/>')},
- streak3:function(){return base(RED,flame+num(3,63))},
- week7:function(){return base(GOLD,'<rect x="24" y="26" width="48" height="46" rx="8" fill="#fff" '+S+'/><path d="M24 38h48" '+S+'/><path d="M34 20v10M62 20v10" '+S+'/><path d="M36 55l8 8 16-16" fill="none" stroke="'+RED+'" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>')},
- consistent:function(){return base(PINK,[30,48,66].map(function(x){return '<circle cx="'+x+'" cy="48" r="9" fill="#fff" '+S+'/><circle cx="'+x+'" cy="48" r="3.5" fill="'+RED+'"/>'}).join('')+'<path d="M24 66h48" '+S+'/>')},
- treat:function(){return base(GOLD,'<circle cx="48" cy="48" r="24" fill="'+PINK+'" '+S+'/><circle cx="48" cy="48" r="8" fill="'+GOLD+'" '+S+'/>'+[[36,36,30],[58,34,-20],[62,56,60],[34,58,10],[48,30,90]].map(function(p){return '<rect x="'+p[0]+'" y="'+p[1]+'" width="7" height="2.8" rx="1.4" transform="rotate('+p[2]+' '+p[0]+' '+p[1]+')" fill="'+INKC+'"/>'}).join(''))},
- fiber1:function(){return base(GREEN,wheat)},
- fiberweek:function(t){var c=t==='gold'?GOLD:t==='silver'?'#e4e4ea':t==='bronze'?'#e3a46b':GREEN;return base(c,wheat.replace(new RegExp(GOLD,'g'),'#fff'))},
- plant15:function(){return base(GREEN,'<g transform="translate(0 -8)">'+sprout+'</g><rect x="33" y="60" width="30" height="18" rx="9" fill="'+GOLD+'" '+S+'/>'+num(15,74).replace('font-size="20"','font-size="12"'))},
- club30:function(){return base(RED,leaf(48,50,-55,GREEN)+leaf(48,50,0,GREEN)+leaf(48,50,55,GREEN)+'<rect x="31" y="54" width="34" height="20" rx="10" fill="'+GOLD+'" '+S+'/>'+num(30,70).replace('font-size="20"','font-size="13"'))},
- newplant:function(){return base(PINK,sprout+'<path d="M70 22l2.5 6 6 2.5-6 2.5-2.5 6-2.5-6-6-2.5 6-2.5z" fill="'+GOLD+'" stroke="'+INKC+'" stroke-width="2.5" stroke-linejoin="round"/>')},
- protein:function(){return base(GOLD,'<path d="M53 16L30 52h16l-5 30 25-38H49z" fill="'+RED+'" '+S+'/>')},
- balanced:function(){return base(GREEN,'<circle cx="48" cy="48" r="26" fill="#fff" '+S+'/><path d="M48 48V22a26 26 0 0 1 22.5 39z" fill="'+GOLD+'" '+S+'/><path d="M48 48l22.5 13A26 26 0 0 1 25.5 61z" fill="'+PINK+'" '+S+'/><path d="M48 48L25.5 61A26 26 0 0 1 48 22z" fill="'+GREEN+'" '+S+'/>')},
- day80:function(){return base(RED,star()+num(80,57).replace('font-size="20"','font-size="14"'))}
+ first:function(){return stamp({ring:'✦ FIRST PLATE ✦ YAMI ✦ FIRST PLATE ✦ YAMI',big:'1st',sm:'PLATE'})},
+ streak3:function(){return stamp({ring:'✦ SHOW UP ✦ 3-DAY STREAK ✦ SHOW UP ✦ 3-DAY',big:'3',sm:'DAYS',fill:GOLD})},
+ week7:function(){return stamp({ring:'✦ PERFECT WEEK ✦ MON-SUN ✦ PERFECT WEEK ✦',big:'7/7',sm:'DAYS'})},
+ consistent:function(){return stamp({ring:'✦ CONSISTENT EATER ✦ 3 MEALS ✦ 3 DAYS ✦',big:'3×3',sm:'MEALS',fill:GOLD})},
+ treat:function(){return stamp({ring:'✦ TREAT YOURSELF ✦ STREAK SAFE ✦ TREAT ✦',glyph:'<circle cx="48" cy="48" r="13" fill="'+GOLD+'" stroke="'+CREAM+'" stroke-width="2.5"/>'+[[43,43],[52,45],[46,53],[54,52]].map(function(p){return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="1.9" fill="'+INKC+'"/>'}).join('')})},
+ fiber1:function(){return stamp({ring:'✦ FIBER FIRST ✦ HAPPY GUT ✦ FIBER FIRST ✦',big:'9g',sm:'FIBER',fill:GOLD})},
+ fiberweek:function(t){var c=t==='gold'?GOLD:t==='silver'?'#d9d6cf':t==='bronze'?'#d99a62':RED;return stamp({ring:'✦ FIBER WEEK ✦ '+(t?t.toUpperCase()+' ✦ ':'')+'28G A DAY ✦ FIBER WEEK',big:'28g',sm:'FIBER',fill:c})},
+ plant15:function(){return stamp({ring:'✦ PLANT PRO ✦ 15 PLANTS ✦ PLANT PRO ✦ EAT GREENS',big:'15',sm:'PLANTS'})},
+ club30:function(){return stamp({ring:'✦ 30 CLUB ✦ 30 PLANTS A WEEK ✦ 30 CLUB ✦',big:'30',sm:'CLUB',fill:GOLD})},
+ newplant:function(){return stamp({ring:'✦ NEW PLANT ✦ TRY SOMETHING NEW ✦ NEW ✦',big:'+1',sm:'PLANT'})},
+ protein:function(){return stamp({ring:'✦ PROTEIN-PACKED ✦ 17G+ ✦ PROTEIN-PACKED',big:'17g',sm:'PROTEIN',fill:GOLD})},
+ balanced:function(){return stamp({ring:'✦ BALANCED PLATE ✦ FIBER ✦ PROTEIN ✦ PLANTS',big:'3/3',sm:'BALANCED'})},
+ day80:function(){return stamp({ring:'✦ FUELED UP ✦ SCORE 80+ ✦ FUELED UP ✦',big:'80+',sm:'SCORE',fill:GOLD})}
 };
 
 // ----- badge rules -----
